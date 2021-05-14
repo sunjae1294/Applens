@@ -17,18 +17,4 @@
 !/frameworks/base/data/etc/
 !/frameworks/base/data/etc/privapp-permissions-platform.xml
 
-!/vendor/
-/vendor/**
-!/vendor/opengapps/
-/vendor/opengapps/**
-!/vendor/opengapps/coral/
-!/vendor/opengapps/coral/**
-
-!/device/
-/device/**
-!/device/google/
-/device/google/**
-!/device/google/coral/
-!/device/google/coral/aosp_coral.mk
-
 .*.swp
