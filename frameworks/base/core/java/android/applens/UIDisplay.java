@@ -70,7 +70,7 @@ public class UIDisplay extends Presentation {
 //                mLayout.addView(view);
                 mContentView.addView(view);              
                 Log.d("sunjae", "view migrated!!");
-
+                mAppLensManager.setProxyLayout(mContentView);
                 view.setLayoutParams(new FrameLayout.LayoutParams(
                             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
             }

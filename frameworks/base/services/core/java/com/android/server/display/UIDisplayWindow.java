@@ -5,6 +5,7 @@ import com.android.internal.util.DumpUtils;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.hardware.display.DisplayManager;
+import android.hardware.input.InputManager;
 import android.util.Slog;
 import android.view.Display;
 import android.view.DisplayInfo;
@@ -12,11 +13,12 @@ import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.InputEvent;
 import android.view.ScaleGestureDetector;
 import android.view.TextureView;
 import android.view.ThreadedRenderer;
 import android.view.View;
-import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.TextureView.SurfaceTextureListener;
 import android.widget.TextView;
@@ -35,17 +37,19 @@ final class UIDisplayWindow {
     // When true, disables support for moving and resizing the overlay.
     // The window is made non-touchable, which makes it possible to
     // directly interact with the content underneath.
-    private final boolean DISABLE_MOVE_AND_RESIZE = true;
+    private final boolean DISABLE_MOVE_AND_RESIZE = false;
 
     private final Context mContext;
     private final String mName;
     private int mWidth;
     private int mHeight;
     private int mDensityDpi;
+    private int mDisplayId;
     private final boolean mSecure;
     private final Listener mListener;
     private final DisplayManager mDisplayManager;
     private final WindowManager mWindowManager;
+    private final InputManager mInputManager;
 
     private final Display mDefaultDisplay;
     private final DisplayInfo mDefaultDisplayInfo = new DisplayInfo();
@@ -78,6 +82,7 @@ final class UIDisplayWindow {
 
         mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        mInputManager = (InputManager) context.getSystemService(Context.INPUT_SERVICE);
 
         mDefaultDisplay = mWindowManager.getDefaultDisplay();
         updateDefaultDisplayInfo();
@@ -143,7 +148,7 @@ final class UIDisplayWindow {
 
         mWindowContent = inflater.inflate(
                 com.android.internal.R.layout.overlay_display_window, null);
-//        mWindowContent.setOnTouchListener(mOnTouchListener);
+        mWindowContent.setOnTouchListener(mOnTouchListener);
 
         mTextureView = (TextureView)mWindowContent.findViewById(
                 com.android.internal.R.id.overlay_display_window_texture);
@@ -157,7 +162,8 @@ final class UIDisplayWindow {
         mWindowParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.TYPE_DISPLAY_OVERLAY, 
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN 
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
               PixelFormat.TRANSLUCENT);
 
         if (mSecure) {
@@ -206,6 +212,7 @@ final class UIDisplayWindow {
         new DisplayManager.DisplayListener() {
             @Override
             public void onDisplayAdded(int displayId) {
+                mDisplayId = displayId;
             }
             
             @Override
@@ -254,6 +261,13 @@ final class UIDisplayWindow {
     private final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent event) {
+            Slog.w("sunjae", "displayId="+((InputEvent)event).getDisplayId() + "new dipslay="+mDisplayId);
+            ((InputEvent)event).setDisplayId(mDisplayId);
+            mInputManager.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+            int num = ((ViewGroup)view).getChildCount();
+            for (int i = 0; i < num; i++) {
+                Slog.w("sunjae", "child="+((ViewGroup)view).getChildAt(i));
+            }
             Slog.w("sunjae", "window touched!!");
             //Not use
             return true;
