@@ -220,6 +220,10 @@ public final class DisplayManagerService extends SystemService {
     // List of all logical displays indexed by logical display id.
     private final SparseArray<LogicalDisplay> mLogicalDisplays =
             new SparseArray<LogicalDisplay>();
+
+    /** applens: start */
+    private final SparseArray<LogicalDisplay> mUiDisplays = new SparseArray<LogicalDisplay>();
+    /** applens: end */
     private int mNextNonDefaultDisplayId = Display.DEFAULT_DISPLAY + 1;
 
     // List of all display transaction listeners.
@@ -1052,6 +1056,21 @@ public final class DisplayManagerService extends SystemService {
         if (isDefault) {
             mSyncRoot.notifyAll();
         }
+        /** applens: start */
+        Slog.w("sunjae", "add Logical Display: "+device.getNameLocked());
+        if (device.getNameLocked().substring(0,4).equals("UI #")) {
+            Slog.w("sunjae", device.getNameLocked()+" Added");
+            int uiNum = Integer.parseInt(device.getNameLocked().substring(device.getNameLocked().length() -1));
+            mUIDisplayAdapter.setDisplayId(displayId, uiNum);
+            mUiDisplays.put(uiNum, display);
+
+        } else if (device.getNameLocked().length() > 8 && device.getNameLocked().substring(0,8).equals("MirrorUI")) {
+            Slog.w("sunjae", device.getNameLocked()+" Added");
+            int uiNum = Integer.parseInt(device.getNameLocked().substring(device.getNameLocked().length() -1) +4);
+            mUIDisplayAdapter.setDisplayId(displayId, uiNum);
+            mUiDisplays.put(uiNum, display);
+        }
+        /** applens: end */
 
         sendDisplayEventLocked(displayId, DisplayManagerGlobal.EVENT_DISPLAY_ADDED);
         return display;
@@ -1392,7 +1411,19 @@ public final class DisplayManagerService extends SystemService {
                 display = null;
             }
             if (display == null) {
-                display = mLogicalDisplays.get(Display.DEFAULT_DISPLAY);
+                /** applens: start */
+                String deviceName = device.getNameLocked();
+                if (deviceName.length() > 8) {
+                    if (deviceName.substring(0,8).equals("MirrorUI")) {
+                        Slog.w("sunjae", "display name = "+deviceName);
+                        int uiNum = Integer.parseInt(deviceName.substring(deviceName.length() -1));
+
+                        display = mUiDisplays.get(uiNum);
+                    }
+                } else {
+                    /** applens: end */
+                    display = mLogicalDisplays.get(Display.DEFAULT_DISPLAY);
+                }
             }
         }
 
@@ -1958,15 +1989,22 @@ public final class DisplayManagerService extends SystemService {
         }
 
         /**Applens: start */
-        /*@hide */
         public int createOffScreenDisplay() {
            return mOffScreenDisplayAdapter.createOffScreenDisplay();
         }
 
-        /*@hide */
         public int createUIDisplay(int width, int height) {
             return mUIDisplayAdapter.createUIDisplay(width, height);
         }
+
+        /** @hide */
+        public int createRightUIDisplay(int width, int height) {
+            return mUIDisplayAdapter.createRightUIDisplay(width, height);
+        }
+
+        public void relayoutUIDisplay(int x, int y, float scale, int num){
+            mUIDisplayAdapter.relayoutUIDisplay(x,y,scale, num);            
+        } 
         /**Applens: end */
 
         @Override // Binder call

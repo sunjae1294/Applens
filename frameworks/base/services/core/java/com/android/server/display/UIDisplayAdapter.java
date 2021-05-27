@@ -13,6 +13,7 @@ import android.view.SurfaceControl;
 import android.graphics.SurfaceTexture;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.SparseArray;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,14 +27,16 @@ final class UIDisplayAdapter extends DisplayAdapter {
 
     private final Handler mUIHandler;
     private Context mContext;
-    private final ArrayList<UIDisplayHandle> mUIDisps = 
-        new ArrayList<UIDisplayHandle>();
+    private int numUi;
+    private final SparseArray<UIDisplayHandle> mUIDisps = 
+        new SparseArray<UIDisplayHandle>();
 
     public UIDisplayAdapter(DisplayManagerService.SyncRoot syncRoot,
             Context context, Handler handler, Listener listener, Handler uiHandler) {
         super(syncRoot, context, handler, listener, TAG);
         mContext = context;
         mUIHandler = uiHandler;
+        numUi = -1;
     }
 
     @Override
@@ -42,17 +45,58 @@ final class UIDisplayAdapter extends DisplayAdapter {
     }
 
     public int createUIDisplay(int width, int height) {
+        numUi++;
         updateUIDisplayDevices(width, height);
+        // max numUi = 4
         Slog.w(TAG, "createUIDisplay");
-        return mUIDisps.size();
+        return numUi;
     }
 
+    public int createRightUIDisplay(int width, int height) {
+        updateRightUIDisplayDevices(width, height);
+        return numUi + 4;
+    }
+
+    public int getIdFromName(String deviceName) {
+        return Integer.parseInt(deviceName.substring(deviceName.length() -1));
+    }
+
+    public void setDisplayId(int displayId, int uiNum) {
+        mUIDisps.get(uiNum).setDisplayId(displayId);
+    }
+    
+    public int getLeftUIDisplay(String deviceName) {
+        if (deviceName.length() > 8) {
+            if (!deviceName.substring(0,8).equals("MirrorUI")) {
+                return -1;
+            }
+
+            int uiNum = Integer.parseInt(deviceName.substring(deviceName.length() -1)) - 4;
+            if (mUIDisps.indexOfKey(uiNum) >= 0) {
+                return mUIDisps.get(uiNum).getDisplayId();
+            }
+        }
+        return -1;
+    }
+/** 
+    public int getLeftUIDisplayId(int rightDisplayId) {
+        for (UIDisplayHandle uiDisp : mUIDisps) {
+            if (uiDisp.getDisplayId() == rightDisplayId) {
+                uiDisp.
+            }    
+        }
+    }
+*/
     private void updateUIDisplayDevices(int width, int height) {
         synchronized(getSyncRoot()){
             updateUIDisplayDevicesLocked(width, height);
         }
     }
-
+    private void updateRightUIDisplayDevices(int width, int height) {
+        synchronized(getSyncRoot()) {
+            updateRightUIDisplayDevicesLocked(width, height);
+        }
+    }
     private void updateUIDisplayDevicesLocked(int width, int height) {
         //iint width = 1440;
         //int height = 3040;
@@ -66,15 +110,41 @@ final class UIDisplayAdapter extends DisplayAdapter {
         int densityDpi = metrics.densityDpi;
 
         ArrayList<UIMode> modes = new ArrayList<>();
-        UIMode mode = new UIMode(width, height, densityDpi);
-        modes.add(mode);
-        String name = "UI #" + modes.size();
-        mUIDisps.add(new UIDisplayHandle(name, mode, modes.size()));
+        UIMode leftMode = new UIMode(width, height, densityDpi);
+        modes.add(leftMode);
+
+
+        String leftName = "UI #" + numUi;
+        mUIDisps.put(numUi,new UIDisplayHandle(leftName, leftMode, numUi));
+    }
+
+    private void updateRightUIDisplayDevicesLocked(int width, int height) {
+        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+        int densityDpi = metrics.densityDpi;
+
+        UIMode rightMode = new UIMode(width, height, densityDpi);
+
+        String rightName = "MirrorUI #" + numUi;
+        mUIDisps.put(4+numUi, new UIDisplayHandle(rightName, rightMode, 4+numUi));
+    }
+/*
+    public void relayoutUIDisplay(int x, int y, float scale) {
+        synchronized(getSyncRoot()){
+            relayoutUIDisplayLocked(x,y,scale);
+        }
+    }
+*/
+    public void relayoutUIDisplay(int x, int y, float scale, int num) {
+        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+        mUIDisps.get(num).relayoutLocked(x,y,scale);
+        if (mUIDisps.indexOfKey(num+4) >= 0) 
+            mUIDisps.get((num) + 4).relayoutLocked(x+(int)(metrics.widthPixels/2), y, scale);
     }
 
     private void dismissUIDisplay() {
-        for (UIDisplayHandle ui : mUIDisps) {
-            ui.dismissLocked();
+        for (int i = 0; i < numUi; i++) {
+            mUIDisps.get(i).dismissLocked();
+            mUIDisps.get(i+4).dismissLocked();
         }
     }
 
@@ -181,12 +251,41 @@ final class UIDisplayAdapter extends DisplayAdapter {
         private UIDisplayWindow mWindow;
         private UIDisplayDevice mDevice;
 
+        private int mX;
+        private int mY;
+        private float mScale;
+        private boolean mIsRight;
+
+
         public UIDisplayHandle(String name, UIMode mode, int number) {
             mName = name;
             mMode = mode;
             mNumber = number;
+            mIsRight = number < 4 ? false : true;
 
             showLocked();
+        }
+
+        public int getNumber() {
+            return mNumber;
+        }
+        public int getDisplayId() {
+            return mWindow.getDisplayId();
+        }
+
+        public void setDisplayId(int displayId) {
+            mWindow.setDisplayId(displayId);
+        }
+
+        public boolean isRight() {
+            return mIsRight;
+        }
+
+        private void relayoutLocked(int x, int y, float scale) {
+            mX = x;
+            mY = y;
+            mScale = scale;
+            mUIHandler.post(mRelayoutRunnable);
         }
 
         private void showLocked() {
@@ -233,11 +332,22 @@ final class UIDisplayAdapter extends DisplayAdapter {
             public void run() {
                 UIMode mode = mMode;
                 UIDisplayWindow window = new UIDisplayWindow(getContext(), mName, mode.mWidth, mode.mHeight,
-                        mode.mDensityDpi,false, UIDisplayHandle.this);
+                        mode.mDensityDpi,false, mIsRight, UIDisplayHandle.this);
                 window.show();
 
                 synchronized (getSyncRoot()) {
                     mWindow = window;
+                }
+            }
+        };
+
+        private final Runnable mRelayoutRunnable = new Runnable() {
+            @Override
+            public void run() {
+                UIDisplayWindow window;
+                synchronized (getSyncRoot()){
+                    window = mWindow;
+                    window.relayoutUIDisplay(mX, mY, mScale);
                 }
             }
         };

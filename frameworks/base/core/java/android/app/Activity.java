@@ -1839,9 +1839,14 @@ public class Activity extends ContextThemeWrapper
         mCalled = true;
         mDisplayManager = (DisplayManager) this.getSystemService(Context.DISPLAY_SERVICE);
         /** aplens: start */
-        if (mComponent.getClassName().equals("com.heterofluid.uitestapp.MainActivity")) {
-            Log.d("sunjae", this+" :app launched");
-            fetchUI();            
+        if (mComponent.getClassName().equals("com.quanticapps.remotelgtvs.activity.ActivityMain")) {
+            fetchUI(0);            
+        } else if (mComponent.getClassName().equals("com.heterofluid.uitestapp.MainActivity")) {
+            fetchUI(1);
+        }
+
+        if (mComponent.getClassName().equals("com.google.android.gms.ads.AdActivity")) {
+            finish(); 
         }
         /** applens: end */
     }
@@ -1850,21 +1855,23 @@ public class Activity extends ContextThemeWrapper
     private AppLensManager mAppLensManager;
     private DisplayManager mDisplayManager;
     /** @hide */
-    public void fetchUI() {
-        View view = extractUI();
-        Log.d("sunjae", this+" :Subtree extracted");
+    public void fetchUI(int mode) {
+        View view = extractUI(mode);
         
         mAppLensManager = AppLensManager.getInstance();
 //        mAppLensManager.setSubtree(this, subtree);
         mAppLensManager.addTargetView(view);
-        
-        int UiWidth = view.getWidth() * 3;
-        int UiHeight = view.getHeight() * 3;
+        if (view != null) {
+            int UiWidth = view.getWidth() * 3;
+            int UiHeight = view.getHeight() * 3;
 
-        mAppLensManager.setPackageName(getPackageName());
-        mAppLensManager.setPrimaryTree(mWindow.getDecorView().findViewById(android.R.id.content));
+            mAppLensManager.setPackageName(getPackageName());
+            mAppLensManager.setPrimaryTree(mWindow.getDecorView().findViewById(android.R.id.content));
 
-        migrateUI();
+            migrateUI();
+        } else {
+            Log.d("sunjae", "Extract View Failed. View is null");
+        } 
     }
 
     /** @hide */
@@ -1872,20 +1879,24 @@ public class Activity extends ContextThemeWrapper
         Display[] presentationDisplays = mDisplayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
         if (presentationDisplays.length > 0) {
             for(Display display : presentationDisplays) {
-                Log.d("sunjae", this+": display name="+display.getName());
-                if (display.getName().equals("UI #1")) {
-                    Log.d("sunjae", this+" :found display1!");
+                if (display.getName().equals("UI #0")) {
                     Presentation presentation = new UIDisplay(this,display);
                     presentation.show();
+                    mDisplayManager.createRightUIDisplay(500,500);
                 }
             }
         }
     }
 
-    private View extractUI() {
+    private View extractUI(int mode) {
         FrameLayout subtree = new FrameLayout(this);
         try {
-            String viewName = "@id/button";
+            String viewName = "";
+            if (mode == 0)
+                viewName = "@id/MAIN_POWER";
+            if (mode == 1)
+                viewName = "@id/button";
+
             int viewId = getResources().getIdentifier(viewName, "id", getPackageName());
             View view = mWindow.getDecorView().findViewById(viewId);
             Log.d("sunjae", "UI:"+view);
@@ -1932,7 +1943,6 @@ public class Activity extends ContextThemeWrapper
      * @see #onWindowFocusChanged(boolean)
      */
     public void onTopResumedActivityChanged(boolean isTopResumedActivity) {
-        Log.d("sunjae", this+" :top resume changed!");
     }
 
     final void performTopResumedActivityChanged(boolean isTopResumedActivity, String reason) {
@@ -2300,7 +2310,6 @@ public class Activity extends ContextThemeWrapper
      */
     @CallSuper
     protected void onPause() {
-        Log.d("sunjae", this+": onPaused()");
         if (DEBUG_LIFECYCLE) Slog.v(TAG, "onPause " + this);
         dispatchActivityPaused();
         if (mAutoFillResetNeeded) {

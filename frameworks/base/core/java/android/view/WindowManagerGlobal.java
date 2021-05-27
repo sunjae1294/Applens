@@ -406,7 +406,6 @@ public final class WindowManagerGlobal {
         final WindowManager.LayoutParams wparams = (WindowManager.LayoutParams)params;
 
         view.setLayoutParams(wparams);
-
         synchronized (mLock) {
             int index = findViewLocked(view, true);
             ViewRootImpl root = mRoots.get(index);

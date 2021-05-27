@@ -441,8 +441,7 @@ public final class DisplayManagerGlobal {
             throw ex.rethrowFromSystemServer();
         }
     }
-    /**Applens: start */
-    /** @hide */
+    /**applens: start */
     public int createOffScreenDisplay() {
         try {
             return mDm.createOffScreenDisplay();
@@ -451,13 +450,30 @@ public final class DisplayManagerGlobal {
         }
     }
 
-    /** @hide */
     public int createUIDisplay(int width, int height) {
         try {
             return mDm.createUIDisplay(width, height);
         } catch(RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
+    }
+
+    /** @hide */
+    public int createRightUIDisplay(int width, int height) {
+        try {
+            return mDm.createRightUIDisplay(width, height);
+        } catch(RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
+    public void relayoutUIDisplay(int x, int y, float scale, int num) {
+        try {
+            mDm.relayoutUIDisplay(x,y,scale, num);
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+
     }
     /**Applens: end */
 

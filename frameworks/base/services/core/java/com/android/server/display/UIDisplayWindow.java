@@ -23,6 +23,7 @@ import android.view.WindowManager;
 import android.view.TextureView.SurfaceTextureListener;
 import android.widget.TextView;
 import android.graphics.PixelFormat;
+import android.util.DisplayMetrics;
 
 /**@hide*/
 final class UIDisplayWindow {
@@ -70,9 +71,10 @@ final class UIDisplayWindow {
     private float mLiveTranslationX;
     private float mLiveTranslationY;
     private float mLiveScale = 1.0f;
+    private boolean mIsRight;
 
     public UIDisplayWindow(Context context, String name,
-            int width, int height, int densityDpi, boolean secure,
+            int width, int height, int densityDpi, boolean secure, boolean isRight,
             Listener listener) {
         ThreadedRenderer.disableVsync();
         mContext = context;
@@ -88,8 +90,16 @@ final class UIDisplayWindow {
         updateDefaultDisplayInfo();
 
         resize(width, height, densityDpi, false /* doLayout */);
-
+        mIsRight = isRight;
         createWindow();
+    }
+
+    public int getDisplayId() {
+        return mDisplayId;
+    }
+
+    public void setDisplayId(int displayId) {
+        mDisplayId = displayId;
     }
     
     public void show() {
@@ -132,6 +142,7 @@ final class UIDisplayWindow {
         if (mWindowVisible) {
             updateWindowParams();
             mWindowManager.updateViewLayout(mWindowContent, mWindowParams);
+            mWindowContent.invalidate();
         }
     }
     
@@ -169,20 +180,31 @@ final class UIDisplayWindow {
         if (mSecure) {
             mWindowParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
         }
-        if (DISABLE_MOVE_AND_RESIZE) {
+        Slog.w("sunjae", "isRight?"+mIsRight);
+        if (mIsRight) {
+
+            Slog.w("sunjae", "isRight="+mIsRight);
             mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
         }
 
         mWindowParams.privateFlags |= WindowManager.LayoutParams.PRIVATE_FLAG_FORCE_HARDWARE_ACCELERATED;
 //        mWindowParams.alpha = WINDOW_ALPHA;
         mWindowParams.gravity = Gravity.TOP | Gravity.LEFT;
-        
-        mWindowX = 0;
+
+        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+        mWindowX = mIsRight ? (int)(metrics.widthPixels/2) : 0;
         mWindowY = 0;
         mWindowScale = INITIAL_SCALE;
         Slog.w("sunjae", mContext+" :UIWindow created"); 
     }
 
+    public void relayoutUIDisplay(int x, int y, float scale) {
+        mWindowScale = scale;
+        mWindowX = x;
+        mWindowY = y;
+        relayout();
+
+    }
     private void updateWindowParams() {
         mTextureView.setScaleX(mWindowScale);
         mTextureView.setScaleY(mWindowScale);
@@ -212,7 +234,6 @@ final class UIDisplayWindow {
         new DisplayManager.DisplayListener() {
             @Override
             public void onDisplayAdded(int displayId) {
-                mDisplayId = displayId;
             }
             
             @Override
@@ -261,15 +282,9 @@ final class UIDisplayWindow {
     private final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent event) {
-            Slog.w("sunjae", "displayId="+((InputEvent)event).getDisplayId() + "new dipslay="+mDisplayId);
+            Slog.w("sunjae", "got touched!! default: " + mDefaultDisplay.getDisplayId() + " mine="+mDisplayId);
             ((InputEvent)event).setDisplayId(mDisplayId);
             mInputManager.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
-            int num = ((ViewGroup)view).getChildCount();
-            for (int i = 0; i < num; i++) {
-                Slog.w("sunjae", "child="+((ViewGroup)view).getChildAt(i));
-            }
-            Slog.w("sunjae", "window touched!!");
-            //Not use
             return true;
         }
     };

@@ -74,10 +74,14 @@ interface IDisplayManager {
     int createVirtualDisplay(in IVirtualDisplayCallback callback,
             in IMediaProjection projectionToken, String packageName, String name,
             int width, int height, int densityDpi, in Surface surface, int flags, String uniqueId);
-    //Applens
+    //applens
     int createOffScreenDisplay();
 
     int createUIDisplay(int width, int height);
+
+    void relayoutUIDisplay(int x, int y, float scale, int num);
+
+    int createRightUIDisplay(int width, int height);
 
     // No permissions required, but must be same Uid as the creator.
     void resizeVirtualDisplay(in IVirtualDisplayCallback token,

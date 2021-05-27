@@ -30,6 +30,7 @@ import android.graphics.Point;
 import android.media.projection.MediaProjection;
 import android.os.Handler;
 import android.util.Pair;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.Display;
 import android.view.Surface;
@@ -646,14 +647,21 @@ public final class DisplayManager {
                 name, width, height, densityDpi, surface, flags, callback, handler, uniqueId);
     }
 
-    /** Applens: start */
-    /** @hide */
+    /** applens: start */
     public int createOffScreenDisplay() {
         return mGlobal.createOffScreenDisplay();
     }
-    /** @hide */
     public int createUIDisplay(int width, int height) {
         return mGlobal.createUIDisplay(width, height);
+    }
+
+    /** @hide */
+    public int createRightUIDisplay(int width, int height) {
+        return mGlobal.createRightUIDisplay(width, height);
+    }
+
+    public void relayoutUIDisplay(int x, int y, float scale, int num) {
+         mGlobal.relayoutUIDisplay(x,y,scale, num);
     }
     
     /** Applens: end */
