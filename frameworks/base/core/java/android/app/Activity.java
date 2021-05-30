@@ -161,6 +161,20 @@ import android.widget.LinearLayout;
 import android.hardware.display.DisplayManager;
 import android.applens.AppLensManager;
 import android.applens.UIDisplay;
+import android.view.Gravity;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.lang.reflect.Constructor;
+import java.lang.Math;
+import java.lang.reflect.Field;
+
+import java.util.Stack;
+import android.util.TypedValue;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserFactory;
+import java.io.FileInputStream;
 /** applens: end */
 
 /**
@@ -760,6 +774,9 @@ public class Activity extends ContextThemeWrapper
     public static final int FINISH_TASK_WITH_ACTIVITY = 2;
 
     @UnsupportedAppUsage
+    /** applens: start */
+    static final String LENS_TAG = "LENS";
+    /** applens: end */
     static final String FRAGMENTS_TAG = "android:fragments";
     private static final String LAST_AUTOFILL_ID = "android:lastAutofillId";
 
@@ -1840,9 +1857,11 @@ public class Activity extends ContextThemeWrapper
         mDisplayManager = (DisplayManager) this.getSystemService(Context.DISPLAY_SERVICE);
         /** aplens: start */
         if (mComponent.getClassName().equals("com.quanticapps.remotelgtvs.activity.ActivityMain")) {
-            fetchUI(0);            
+            fetchSubtree(true);
+//                    fetchUI(0);            
         } else if (mComponent.getClassName().equals("com.heterofluid.uitestapp.MainActivity")) {
-            fetchUI(1);
+            fetchSubtree(true);
+        //                fetchUI(1);
         }
 
         if (mComponent.getClassName().equals("com.google.android.gms.ads.AdActivity")) {
@@ -1854,12 +1873,27 @@ public class Activity extends ContextThemeWrapper
     /** applens: start */
     private AppLensManager mAppLensManager;
     private DisplayManager mDisplayManager;
+
+    /** @hide */
+    public void fetchSubtree(boolean firstTime) {
+        View subtree = extractSubtree(firstTime);
+
+        if (subtree != null) {
+            Log.d(LENS_TAG, "Subtree Found");
+            
+            mAppLensManager = AppLensManager.getInstance();
+            mAppLensManager.mSubtree = subtree;
+            mAppLensManager.setPackageName(getPackageName());
+            mAppLensManager.setPrimaryTree(mWindow.getDecorView().findViewById(android.R.id.content));
+            migrateUI();
+        }
+    }
     /** @hide */
     public void fetchUI(int mode) {
         View view = extractUI(mode);
         
         mAppLensManager = AppLensManager.getInstance();
-//        mAppLensManager.setSubtree(this, subtree);
+        //mAppLensManager.setSubtree(this, subtree);
         mAppLensManager.addTargetView(view);
         if (view != null) {
             int UiWidth = view.getWidth() * 3;
@@ -1870,9 +1904,255 @@ public class Activity extends ContextThemeWrapper
 
             migrateUI();
         } else {
-            Log.d("sunjae", "Extract View Failed. View is null");
+            Log.d(LENS_TAG, "Extract View Failed. View is null");
         } 
     }
+
+    private XmlPullParser parser;
+    private FrameLayout subtree;
+    /** @hide */
+    private View extractSubtree(boolean firstTime) {
+        boolean res;
+        try {
+            if (firstTime) {
+                subtree = new FrameLayout(this);
+                File layoutFile = new File(getExternalFilesDir(null) + "/second_layout.xml");
+                FileInputStream fis = new FileInputStream(layoutFile);
+                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+                parser = factory.newPullParser();
+                parser.setInput(fis, null);
+                res = inflate(parser, subtree, firstTime);
+            }else{
+                res = inflate(parser, subtree, firstTime);
+            }
+            if (res) {
+                Log.d(LENS_TAG, "subtree found");
+                mWindow.getDecorView().setWatchUpdate(false);
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(LENS_TAG, "no second_layout file");		
+        }
+        return subtree;
+    }
+
+    private boolean inflate(XmlPullParser parser, ViewGroup parent, boolean firstTime) throws Exception {
+        final int depth = parser.getDepth();
+        int type;
+        if (!firstTime) {
+            type = parser.getEventType();
+        }
+        else{
+            type = parser.next();
+        }
+        while ((type != XmlPullParser.END_TAG ||
+                parser.getDepth() > depth) && type != XmlPullParser.END_DOCUMENT) {
+
+            if (type != XmlPullParser.START_TAG) {
+                Log.d(LENS_TAG, "start tag");
+                type = parser.next();
+                continue;
+            }
+
+            String existing = parser.getAttributeValue(null, "android:existing_instance");
+            Log.d(LENS_TAG, "inflate(), name = " + parser.getName() + ", depth = " + parser.getDepth() + ", existing = " + existing);
+            View view = null;
+            if (existing != null && existing.equals("true")) {
+                String id = parser.getAttributeValue(null, "android:id");
+                String customizing = parser.getAttributeValue(null, "android:customizing_children");
+                String isConstraint = parser.getAttributeValue(null, "android:is_constraint");
+                int viewID = getResources().getIdentifier(id, "id", getPackageName());
+                view = mWindow.getDecorView().findViewById(viewID);
+
+                if (view == null) {
+                    Log.d(LENS_TAG, "view not found");
+                    mWindow.getDecorView().setWatchUpdate(true);                    
+                    return false;
+                }
+
+                setViewAttribute(parser, view);
+
+                if (customizing != null && customizing.equals("true"))
+                    customizeChildren(parser, (ViewGroup)view);
+
+                ViewGroup orgParent = (ViewGroup)view.getParent();
+                if (orgParent != null) {
+                   Log.d(LENS_TAG, "orgParent className="+orgParent.getClass().getSimpleName()); 
+                   if (orgParent.getClass().getSimpleName().contains("ConstraintLayout") && 
+                           isConstraint != null &&isConstraint.equals("true")) {
+                        int childCount = ((ViewGroup)view).getChildCount();
+                        for (int i = 0; i < childCount; i++) {
+                            View child = ((ViewGroup)view).getChildAt(i);
+                            ((ViewGroup)view).removeView(child);
+                            child.clearPosition();
+                            parent.addView(child);
+                                                      
+                            i --;
+                            childCount --;
+                        }
+                        continue;
+                   } 
+                   else {
+                        orgParent.removeView(view);
+                        view.mVirtualParent = orgParent;
+                   }
+                }
+                ViewGroup.LayoutParams params = parent.generateLayoutParams();
+                ViewGroup.LayoutParams orgParams = view.getLayoutParams();
+                
+                if (orgParams != null ) {
+//                    params.width = orgParams.width;
+//                    params.height = orgParams.height;
+                }
+                if (depth == 0)
+                    ((FrameLayout.LayoutParams)params).gravity = Gravity.CENTER;
+
+                view.clearPosition();
+                parent.addView(view, params);
+
+            }
+            else {
+                String className = parser.getName();
+                Class clazz = Class.forName("android.widget." + className);
+                Constructor<? extends View> constructor = clazz.getConstructor(Context.class);
+                view = (View)constructor.newInstance(this);
+                view.setLayoutParams(parent.generateLayoutParams());
+                setViewAttribute(parser, view);
+                boolean res =  inflate(parser, (ViewGroup)view, false);
+
+                view.clearPosition();
+                parent.addView(view);
+                return res;
+            }
+            type = parser.next();
+        }
+            return true;
+    }
+
+    private View getViewInstance(String newInstance, String id, String className) {
+        if (newInstance != null && newInstance.equals("true")) {
+            try {
+                Class clazz = Class.forName("android.widget." + className);
+                Constructor<? extends View> constructor = clazz.getConstructor(Context.class);
+                return (View) constructor.newInstance(this);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            int viewID = getResources().getIdentifier(id, "id", getPackageName());
+            return mWindow.getDecorView().findViewById(viewID);
+        }
+        return null;
+    }
+
+    private void customizeChildren(XmlPullParser parser, ViewGroup parent) {
+        int depth = parser.getDepth();
+        Stack<View> stack = new Stack<View>();
+        for (int i = parent.getChildCount() - 1; i >= 0; i--) {
+            View child = parent.getChildAt(i);
+            if (child != null)
+                stack.push(child);
+        }
+
+        try {
+            int type = parser.next();
+            while (type != XmlPullParser.END_DOCUMENT) {
+                if (type == XmlPullParser.START_TAG) {
+                    View view = stack.pop();
+                    Log.d(LENS_TAG, "view = " + view + ", depth = " + parser.getDepth());
+
+                    // Reconfiguring attributes
+                    setViewAttribute(parser, view);
+
+                    if (view instanceof ViewGroup) {
+                        ViewGroup vg = (ViewGroup) view;
+                        for (int i = vg.getChildCount() - 1; i >= 0; i--) {
+                            View child = vg.getChildAt(i);
+                            if (child != null)
+                                stack.push(child);
+                        }
+                    }
+                }
+                type = parser.next();
+                if (parser.getDepth() == depth && type == XmlPullParser.END_TAG)
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        assert stack.empty() == true;
+    }
+
+    private void setViewAttribute(XmlPullParser parser, View view) {
+        Log.d(LENS_TAG, "view = " + view);
+        int count = parser.getAttributeCount();
+        for (int i = 0; i < count; i++) {
+            String attrName = parser.getAttributeName(i);
+            String attrVal = parser.getAttributeValue(i);
+            String attrType = null;
+            int resID = -1;
+            if (attrVal.charAt(0) == '@') {
+                attrType = attrVal.substring(1, attrVal.indexOf("/"));
+                resID = getResources().getIdentifier(attrVal, attrType, getPackageName());
+            }
+            Log.d(LENS_TAG, "          attrName = " + attrName + ", attrVal = " + attrVal + ", attrType = " + attrType + ", resID = " + resID);
+
+            if (attrName.equals("android:id"))
+                continue;
+            else if (attrName.equals("android:background"))
+                view.setBackgroundResource(resID);
+            else if (attrName.equals("android:layout_height")) {
+                if (attrVal.equals("wrap_content"))
+                    view.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                else if (attrVal.equals("match_parent") || attrVal.equals("fill_parent"))
+                    view.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
+                else {
+                    String floatStr = attrVal.substring(0, attrVal.indexOf("d"));
+                    float value = Float.parseFloat(floatStr);
+                    view.getLayoutParams().height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
+                }
+            }
+            else if (attrName.equals("android:layout_width")) {
+                if (attrVal.equals("wrap_content"))
+                    view.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                else if (attrVal.equals("match_parent") || attrVal.equals("fill_parent"))
+                    view.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+                else {
+                    String floatStr = attrVal.substring(0, attrVal.indexOf("d"));
+                    float value = Float.parseFloat(floatStr);
+                    view.getLayoutParams().width = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
+                }
+            }
+            else if (attrName.equals("android:layout_weight")) {
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+//                        LayoutParams.MATCH_PARENT, Float.parseFloat(attrVal));
+                        ViewGroup.LayoutParams.MATCH_PARENT, 1.0f);
+                view.setLayoutParams(params);
+            }
+            else if (attrName.equals("android:orientation")) {
+                int orientation = (attrVal.equals("vertical"))? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL;
+                ((LinearLayout) view).setOrientation(orientation);
+            }
+            else if (attrName.equals("android:paddingTop")) {
+                String valStr = attrVal.substring(0, attrVal.indexOf("d"));
+                int value = Integer.parseInt(valStr);
+                float density = getResources().getDisplayMetrics().density;
+                int paddingPixel = (int)(value * density);
+                view.setPadding(0, paddingPixel, 0, 0);
+            }
+            else if (attrName.equals("android:setY")) {
+                String valStr = attrVal.substring(0, attrVal.indexOf("d"));
+                int value = Integer.parseInt(valStr);
+                float density = getResources().getDisplayMetrics().density;
+                view.setY(value * density);
+            }
+        }
+        view.setVisibility(View.VISIBLE);
+    }
+
 
     /** @hide */
     public void migrateUI() {
@@ -1882,7 +2162,7 @@ public class Activity extends ContextThemeWrapper
                 if (display.getName().equals("UI #0")) {
                     Presentation presentation = new UIDisplay(this,display);
                     presentation.show();
-                    mDisplayManager.createRightUIDisplay(500,500);
+                    mDisplayManager.createRightUIDisplay(266,574);
                 }
             }
         }

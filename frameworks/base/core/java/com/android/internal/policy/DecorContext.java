@@ -30,11 +30,11 @@ import com.android.internal.annotations.VisibleForTesting;
 
 import java.lang.ref.WeakReference;
 
-/**Applens: start */
+/**applens: start */
 import android.app.Activity;
 import android.view.MotionEvent;
 import android.util.Log;
-/**Applens: end */
+/**applens: end */
 
 /**
  * Context for decor views which can be seeded with pure application context and not depend on the
@@ -122,7 +122,7 @@ public class DecorContext extends ContextThemeWrapper {
         return null;
     }
 
-    /**Applens: start */
+    /**applens: start */
     /** @hide */
     public boolean createOffScreenDisplay(MotionEvent event) {
         Context context = mActivityContext.get();
@@ -131,5 +131,14 @@ public class DecorContext extends ContextThemeWrapper {
         }
         return false;
     }
-    /**Applens: end */
+
+    /** @hide */
+    public void fetchSubtree() {
+        Context context = mActivityContext.get();
+        if (context instanceof Activity) {
+            ((Activity)context).fetchSubtree(false);
+        }
+    }
+
+    /**applens: end */
 }

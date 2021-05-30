@@ -811,6 +811,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     /* applens: start */
     private boolean isMigrated = false;
     private boolean isMeasuring = false;
+    private boolean watchUpdate = false;
 
     /** @hide */
     public ViewParent mVirtualParent = null;
@@ -823,6 +824,11 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     /** @hide */
     public void setMigrated(boolean migrated) {
         isMigrated = migrated;
+    }
+
+    /** @hide */
+    public void setWatchUpdate(boolean update) {
+        watchUpdate = update;
     }
     
     /** @hide */
@@ -22563,6 +22569,13 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         }
 
         notifyAppearedOrDisappearedForContentCaptureIfNeeded(true);
+        /** applens: start */
+        if (watchUpdate) {
+            if (mContext instanceof DecorContext) {
+                ((DecorContext)mContext).fetchSubtree();
+            }
+        }
+        /** applens: end */
     }
 
     private boolean hasParentWantsFocus() {

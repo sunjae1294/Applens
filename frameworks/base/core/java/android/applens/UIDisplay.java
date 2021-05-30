@@ -18,6 +18,10 @@ import android.view.MotionEvent;
 import android.graphics.PixelFormat;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
+import android.webkit.WebView;
 
 /** @hide */
 public class UIDisplay extends Presentation {
@@ -39,21 +43,40 @@ public class UIDisplay extends Presentation {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         mAppLensManager = AppLensManager.getInstance();
         mTargetViews = mAppLensManager.getTargetViews();
-        if (mTargetViews != null) {
+
+        View subtree = mAppLensManager.mSubtree;
+        if (subtree != null) {
             Window window = getWindow();
             mWindowParams = window.getAttributes();
             window.setFormat(PixelFormat.TRANSLUCENT);
             mContentView = (ViewGroup)window.getDecorView().findViewById(android.R.id.content);
-//            mLayout = new LinearLayout(getContext());
-//            mLayout.setBackgroundColor(0x00000000);
-//            mContentView.setBackgroundColor(0x00000000);
-//            mContentView.setAlpha(0.0f);
-//            mLayout.setAlpha(0.0f);
-//            mLayout.setOrientation(LinearLayout.VERTICAL);
-//            mContentView.addView(mLayout);
+            mContentView.addView(subtree);
 
+            mTargetViews = new ArrayList<View>();
+            Queue<ViewGroup> queue = new LinkedList<ViewGroup>();
+            queue.add(mContentView);
+
+            while (!queue.isEmpty()) {
+                ViewGroup parent = queue.poll();
+                int childCount = parent.getChildCount();
+                for (int i = 0; i < childCount; i++) {
+                    View child = parent.getChildAt(i);
+                    child.setMigrated(true);
+
+                    if (child instanceof ViewGroup && !(child instanceof WebView))
+                        queue.add((ViewGroup)child);
+                    else
+                        mTargetViews.add(child);
+                    subtree.setFocusable(true);
+                    subtree.setFocusableInTouchMode(true);
+                    mAppLensManager.setMigratedViews(mTargetViews);
+                    mAppLensManager.setProxyLayout(subtree);
+                }
+            }
+/**
             for (View view : mTargetViews) {
                 ViewGroup parent = (ViewGroup) view.getParent();
                 if (parent != null) {
@@ -73,7 +96,7 @@ public class UIDisplay extends Presentation {
                 mAppLensManager.setProxyLayout(mContentView);
                 view.setLayoutParams(new FrameLayout.LayoutParams(
                             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-            }
+            **/
         }
     }
 }
