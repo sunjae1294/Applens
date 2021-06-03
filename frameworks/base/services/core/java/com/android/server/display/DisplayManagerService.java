@@ -1057,7 +1057,6 @@ public final class DisplayManagerService extends SystemService {
             mSyncRoot.notifyAll();
         }
         /** applens: start */
-        Slog.w("sunjae", "add Logical Display: "+device.getNameLocked());
         if (device.getNameLocked().substring(0,4).equals("UI #")) {
             Slog.w("sunjae", device.getNameLocked()+" Added");
             int uiNum = Integer.parseInt(device.getNameLocked().substring(device.getNameLocked().length() -1));
@@ -1066,7 +1065,7 @@ public final class DisplayManagerService extends SystemService {
 
         } else if (device.getNameLocked().length() > 8 && device.getNameLocked().substring(0,8).equals("MirrorUI")) {
             Slog.w("sunjae", device.getNameLocked()+" Added");
-            int uiNum = Integer.parseInt(device.getNameLocked().substring(device.getNameLocked().length() -1) +4);
+            int uiNum = Integer.parseInt(device.getNameLocked().substring(device.getNameLocked().length() -1)) +4;
             mUIDisplayAdapter.setDisplayId(displayId, uiNum);
             mUiDisplays.put(uiNum, display);
         }
@@ -1415,9 +1414,8 @@ public final class DisplayManagerService extends SystemService {
                 String deviceName = device.getNameLocked();
                 if (deviceName.length() > 8) {
                     if (deviceName.substring(0,8).equals("MirrorUI")) {
-                        Slog.w("sunjae", "display name = "+deviceName);
                         int uiNum = Integer.parseInt(deviceName.substring(deviceName.length() -1));
-
+    
                         display = mUiDisplays.get(uiNum);
                     }
                 } else {
@@ -1721,6 +1719,7 @@ public final class DisplayManagerService extends SystemService {
         public void onDisplayDeviceEvent(DisplayDevice device, int event) {
             switch (event) {
                 case DisplayAdapter.DISPLAY_DEVICE_EVENT_ADDED:
+                    Slog.w("LENS", "display added");
                     handleDisplayDeviceAdded(device);
                     break;
 
@@ -2002,8 +2001,8 @@ public final class DisplayManagerService extends SystemService {
             return mUIDisplayAdapter.createRightUIDisplay(width, height);
         }
 
-        public void relayoutUIDisplay(int x, int y, float scale, int num){
-            mUIDisplayAdapter.relayoutUIDisplay(x,y,scale, num);            
+        public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale){
+            mUIDisplayAdapter.relayoutUIDisplay(left,right,bottom, top, scale);            
         } 
         /**Applens: end */
 

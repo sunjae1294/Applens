@@ -20,7 +20,7 @@ public class AppLensManager {
 
     private ArrayList<View> mMigratedViews = null;
     private ArrayList<View> mTargetViews = new ArrayList<View>();
-    public int mNumUnMeasuredDynamic = 0;
+
 
     private Context mContext;
     public int mUiWidth = -1;
@@ -28,15 +28,18 @@ public class AppLensManager {
     public int mUiDpi = -1;
     public int UiOrientation = 0;
 
+
+    public int mNumDisplay = 0;
     private View mProxyLayout;
     public View mPrimaryTree = null;
-    public View mSubtree = null;
+    private ArrayList<ViewGroup> mSubtrees;
     public boolean mIsTraversing = false;
     public static int mRecursionDepth = 0;
 
     private String mPackageName = null;
 
     public AppLensManager() {
+        mSubtrees = new ArrayList<ViewGroup>();
         Log.d("sunjae", "AppLens Manager created!!");
     }
 
@@ -53,9 +56,8 @@ public class AppLensManager {
         mPackageName = packageName;
     }
 
-    public void setSubtree(Context context, View subtree) {
-        mContext = context;
-        mSubtree = subtree;
+    public ArrayList<ViewGroup> getSubtrees() {
+        return mSubtrees;
     }
 
     public void setPrimaryTree(View root) {

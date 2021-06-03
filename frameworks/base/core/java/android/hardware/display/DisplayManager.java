@@ -660,8 +660,8 @@ public final class DisplayManager {
         return mGlobal.createRightUIDisplay(width, height);
     }
 
-    public void relayoutUIDisplay(int x, int y, float scale, int num) {
-         mGlobal.relayoutUIDisplay(x,y,scale, num);
+    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale) {
+         mGlobal.relayoutUIDisplay(left, right, bottom, top ,scale);
     }
     
     /** Applens: end */

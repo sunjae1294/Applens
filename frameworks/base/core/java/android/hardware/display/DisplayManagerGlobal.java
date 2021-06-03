@@ -467,9 +467,9 @@ public final class DisplayManagerGlobal {
         }
     }
 
-    public void relayoutUIDisplay(int x, int y, float scale, int num) {
+    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale) {
         try {
-            mDm.relayoutUIDisplay(x,y,scale, num);
+            mDm.relayoutUIDisplay(left, right, bottom, top, scale);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }

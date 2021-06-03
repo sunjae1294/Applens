@@ -34,10 +34,12 @@ public class UIDisplay extends Presentation {
     LinearLayout mLayout;
     ArrayList<View> mTargetViews;
     WindowManager.LayoutParams mWindowParams;
+    View subtree;
 
-    public UIDisplay(Context outerContext, Display display) {
+    public UIDisplay(Context outerContext, Display display, ViewGroup subtree) {
         super(outerContext, display);
         this.mOuterContext = outerContext;
+        this.subtree = (View)subtree;
     }
 
     @Override
@@ -47,7 +49,6 @@ public class UIDisplay extends Presentation {
         mAppLensManager = AppLensManager.getInstance();
         mTargetViews = mAppLensManager.getTargetViews();
 
-        View subtree = mAppLensManager.mSubtree;
         if (subtree != null) {
             Window window = getWindow();
             mWindowParams = window.getAttributes();

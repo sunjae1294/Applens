@@ -198,10 +198,10 @@ final class UIDisplayWindow {
         Slog.w("sunjae", mContext+" :UIWindow created"); 
     }
 
-    public void relayoutUIDisplay(int x, int y, float scale) {
+    public void relayoutUIDisplay(float x, float y, float scale) {
         mWindowScale = scale;
-        mWindowX = x;
-        mWindowY = y;
+        mWindowX = (int)x;
+        mWindowY = (int)y;
         relayout();
 
     }

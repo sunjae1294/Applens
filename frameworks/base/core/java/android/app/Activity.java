@@ -1876,13 +1876,12 @@ public class Activity extends ContextThemeWrapper
 
     /** @hide */
     public void fetchSubtree(boolean firstTime) {
-        View subtree = extractSubtree(firstTime);
+        mAppLensManager = AppLensManager.getInstance();
 
-        if (subtree != null) {
+        if (extractSubtree(firstTime)) {
             Log.d(LENS_TAG, "Subtree Found");
             
             mAppLensManager = AppLensManager.getInstance();
-            mAppLensManager.mSubtree = subtree;
             mAppLensManager.setPackageName(getPackageName());
             mAppLensManager.setPrimaryTree(mWindow.getDecorView().findViewById(android.R.id.content));
             migrateUI();
@@ -1909,181 +1908,104 @@ public class Activity extends ContextThemeWrapper
     }
 
     private XmlPullParser parser;
-    private FrameLayout subtree;
     /** @hide */
-    private View extractSubtree(boolean firstTime) {
+    private boolean extractSubtree(boolean firstTime) {
         boolean res;
         try {
             if (firstTime) {
-                subtree = new FrameLayout(this);
                 File layoutFile = new File(getExternalFilesDir(null) + "/second_layout.xml");
                 FileInputStream fis = new FileInputStream(layoutFile);
                 XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                 parser = factory.newPullParser();
                 parser.setInput(fis, null);
-                res = inflate(parser, subtree, firstTime);
+                res = inflate(parser);
             }else{
-                res = inflate(parser, subtree, firstTime);
+                res = inflate(parser);
             }
             if (res) {
                 Log.d(LENS_TAG, "subtree found");
                 mWindow.getDecorView().setWatchUpdate(false);
             } else {
-                return null;
+                return false;
             }
         } catch (Exception e) {
             e.printStackTrace();
             Log.d(LENS_TAG, "no second_layout file");		
         }
-        return subtree;
+        return true;
     }
 
-    private boolean inflate(XmlPullParser parser, ViewGroup parent, boolean firstTime) throws Exception {
-        final int depth = parser.getDepth();
-        int type;
-        if (!firstTime) {
-            type = parser.getEventType();
-        }
-        else{
-            type = parser.next();
-        }
-        while ((type != XmlPullParser.END_TAG ||
-                parser.getDepth() > depth) && type != XmlPullParser.END_DOCUMENT) {
+    private boolean inflate(XmlPullParser parser) throws Exception {
+        int eventType = parser.getEventType();
+        ArrayList<ViewGroup> subtrees = mAppLensManager.getSubtrees();
 
-            if (type != XmlPullParser.START_TAG) {
-                Log.d(LENS_TAG, "start tag");
-                type = parser.next();
-                continue;
-            }
-
-            String existing = parser.getAttributeValue(null, "android:existing_instance");
-            Log.d(LENS_TAG, "inflate(), name = " + parser.getName() + ", depth = " + parser.getDepth() + ", existing = " + existing);
-            View view = null;
-            if (existing != null && existing.equals("true")) {
-                String id = parser.getAttributeValue(null, "android:id");
-                String customizing = parser.getAttributeValue(null, "android:customizing_children");
-                String isConstraint = parser.getAttributeValue(null, "android:is_constraint");
-                int viewID = getResources().getIdentifier(id, "id", getPackageName());
-                view = mWindow.getDecorView().findViewById(viewID);
-
-                if (view == null) {
-                    Log.d(LENS_TAG, "view not found");
-                    mWindow.getDecorView().setWatchUpdate(true);                    
-                    return false;
-                }
-
-                setViewAttribute(parser, view);
-
-                if (customizing != null && customizing.equals("true"))
-                    customizeChildren(parser, (ViewGroup)view);
-
-                ViewGroup orgParent = (ViewGroup)view.getParent();
-                if (orgParent != null) {
-                   Log.d(LENS_TAG, "orgParent className="+orgParent.getClass().getSimpleName()); 
-                   if (orgParent.getClass().getSimpleName().contains("ConstraintLayout") && 
-                           isConstraint != null &&isConstraint.equals("true")) {
-                        int childCount = ((ViewGroup)view).getChildCount();
-                        for (int i = 0; i < childCount; i++) {
-                            View child = ((ViewGroup)view).getChildAt(i);
-                            ((ViewGroup)view).removeView(child);
-                            child.clearPosition();
-                            parent.addView(child);
-                                                      
-                            i --;
-                            childCount --;
-                        }
-                        continue;
-                   } 
-                   else {
-                        orgParent.removeView(view);
-                        view.mVirtualParent = orgParent;
-                   }
-                }
-                ViewGroup.LayoutParams params = parent.generateLayoutParams();
-                ViewGroup.LayoutParams orgParams = view.getLayoutParams();
-                
-                if (orgParams != null ) {
-//                    params.width = orgParams.width;
-//                    params.height = orgParams.height;
-                }
-                if (depth == 0)
-                    ((FrameLayout.LayoutParams)params).gravity = Gravity.CENTER;
-
-                view.clearPosition();
-                parent.addView(view, params);
-
-            }
-            else {
-                String className = parser.getName();
-                Class clazz = Class.forName("android.widget." + className);
-                Constructor<? extends View> constructor = clazz.getConstructor(Context.class);
-                view = (View)constructor.newInstance(this);
-                view.setLayoutParams(parent.generateLayoutParams());
-                setViewAttribute(parser, view);
-                boolean res =  inflate(parser, (ViewGroup)view, false);
-
-                view.clearPosition();
-                parent.addView(view);
-                return res;
-            }
-            type = parser.next();
-        }
-            return true;
-    }
-
-    private View getViewInstance(String newInstance, String id, String className) {
-        if (newInstance != null && newInstance.equals("true")) {
-            try {
-                Class clazz = Class.forName("android.widget." + className);
-                Constructor<? extends View> constructor = clazz.getConstructor(Context.class);
-                return (View) constructor.newInstance(this);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            int viewID = getResources().getIdentifier(id, "id", getPackageName());
-            return mWindow.getDecorView().findViewById(viewID);
-        }
-        return null;
-    }
-
-    private void customizeChildren(XmlPullParser parser, ViewGroup parent) {
-        int depth = parser.getDepth();
-        Stack<View> stack = new Stack<View>();
-        for (int i = parent.getChildCount() - 1; i >= 0; i--) {
-            View child = parent.getChildAt(i);
-            if (child != null)
-                stack.push(child);
-        }
-
-        try {
-            int type = parser.next();
-            while (type != XmlPullParser.END_DOCUMENT) {
-                if (type == XmlPullParser.START_TAG) {
-                    View view = stack.pop();
-                    Log.d(LENS_TAG, "view = " + view + ", depth = " + parser.getDepth());
-
-                    // Reconfiguring attributes
-                    setViewAttribute(parser, view);
-
-                    if (view instanceof ViewGroup) {
-                        ViewGroup vg = (ViewGroup) view;
-                        for (int i = vg.getChildCount() - 1; i >= 0; i--) {
-                            View child = vg.getChildAt(i);
-                            if (child != null)
-                                stack.push(child);
-                        }
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            eventType = parser.getEventType();
+            switch (eventType) {
+                case XmlPullParser.START_DOCUMENT:
+                    Log.d(LENS_TAG, "Start Parsing XML");
+                    break;
+                case XmlPullParser.END_TAG:
+                    Log.d(LENS_TAG, "End Parsing: "+parser.getName());
+                    if (parser.getName().equals("new")) {
+                        ViewGroup newSubtree = subtrees.remove(subtrees.size() -1);
+                        ViewGroup oldSubtree = subtrees.get(subtrees.size() -1);
+                        
+                        newSubtree.clearPosition();
+                        oldSubtree.addView(newSubtree);
                     }
-                }
-                type = parser.next();
-                if (parser.getDepth() == depth && type == XmlPullParser.END_TAG)
+                    break;
+                case XmlPullParser.START_TAG:
+                    Log.d(LENS_TAG, "Start Parsing: "+parser.getName());
+
+                    if (parser.getName().equals("display")) {
+                        mAppLensManager.mNumDisplay++;
+                        FrameLayout subtree = new FrameLayout(this);
+                        subtrees.add((ViewGroup)subtree);
+                    } else if (parser.getName().equals("existing")) {
+                        FrameLayout subtree = (FrameLayout)(subtrees.get(subtrees.size() -1));
+                        
+                        View view = null;
+                            String id = parser.getAttributeValue(null, "android:id");
+                            Log.d(LENS_TAG, "finding: "+id);
+
+                            int viewID = getResources().getIdentifier(id, "id", getPackageName());
+                            view = mWindow.getDecorView().findViewById(viewID);
+
+                            if (view == null) {
+                                Log.d(LENS_TAG, id+ " not found");
+                                mWindow.getDecorView().setWatchUpdate(true);
+                                return false;
+                            }
+
+                            setViewAttribute(parser, view);
+
+                            ViewGroup orgParent = (ViewGroup)view.getParent();
+                            if (orgParent != null) {
+                                orgParent.removeView(view);
+                                view.mVirtualParent = orgParent;
+                            }
+                            ViewGroup.LayoutParams params = subtree.generateLayoutParams();
+                            ViewGroup.LayoutParams orgParams = view.getLayoutParams();
+                            view.clearPosition();
+                            subtree.addView(view, params);
+
+                    } else if (parser.getName().equals("new")) {
+                        View view = null; 
+                        FrameLayout subtree = (FrameLayout)(subtrees.get(subtrees.size() -1));
+                        String className = parser.getAttributeValue(null, "android:class");
+                        Class clazz = Class.forName("android.widget." + className);
+                        Constructor<? extends View> constructor = clazz.getConstructor(Context.class);
+                        view = (View) constructor.newInstance(this);
+                        view.setLayoutParams(subtree.generateLayoutParams());
+                        setViewAttribute(parser, view);
+                        subtrees.add((ViewGroup)view);
+                    }
                     break;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            parser.next();
         }
-        assert stack.empty() == true;
+        return true;
     }
 
     private void setViewAttribute(XmlPullParser parser, View view) {
@@ -2153,19 +2075,85 @@ public class Activity extends ContextThemeWrapper
         view.setVisibility(View.VISIBLE);
     }
 
+    private View getViewInstance(String newInstance, String id, String className) {
+        if (newInstance != null && newInstance.equals("true")) {
+            try {
+                Class clazz = Class.forName("android.widget." + className);
+                Constructor<? extends View> constructor = clazz.getConstructor(Context.class);
+                return (View) constructor.newInstance(this);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            int viewID = getResources().getIdentifier(id, "id", getPackageName());
+            return mWindow.getDecorView().findViewById(viewID);
+        }
+        return null;
+    }
+
+    private void customizeChildren(XmlPullParser parser, ViewGroup parent) {
+        int depth = parser.getDepth();
+        Stack<View> stack = new Stack<View>();
+        for (int i = parent.getChildCount() - 1; i >= 0; i--) {
+            View child = parent.getChildAt(i);
+            if (child != null)
+                stack.push(child);
+        }
+
+        try {
+            int type = parser.next();
+            while (type != XmlPullParser.END_DOCUMENT) {
+                if (type == XmlPullParser.START_TAG) {
+                    View view = stack.pop();
+                    Log.d(LENS_TAG, "view = " + view + ", depth = " + parser.getDepth());
+
+                    // Reconfiguring attributes
+                    setViewAttribute(parser, view);
+
+                    if (view instanceof ViewGroup) {
+                        ViewGroup vg = (ViewGroup) view;
+                        for (int i = vg.getChildCount() - 1; i >= 0; i--) {
+                            View child = vg.getChildAt(i);
+                            if (child != null)
+                                stack.push(child);
+                        }
+                    }
+                }
+                type = parser.next();
+                if (parser.getDepth() == depth && type == XmlPullParser.END_TAG)
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        assert stack.empty() == true;
+    }
+
+
 
     /** @hide */
     public void migrateUI() {
-        Display[] presentationDisplays = mDisplayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
-        if (presentationDisplays.length > 0) {
+        ArrayList<ViewGroup> subtrees = mAppLensManager.getSubtrees();
+        for (int i = 0; i < mAppLensManager.mNumDisplay; i++) {
+            Log.d(LENS_TAG, "create UIDisplay #"+i);
+            mDisplayManager.createUIDisplay(266,574);
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+            
+            }
+            Display[] presentationDisplays = mDisplayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
             for(Display display : presentationDisplays) {
-                if (display.getName().equals("UI #0")) {
-                    Presentation presentation = new UIDisplay(this,display);
+                Log.d(LENS_TAG, "found display: "+display.getName());
+                if (display.getName().equals("UI #"+i)) {
+                    Presentation presentation = new UIDisplay(this,display,subtrees.get(i));
                     presentation.show();
                     mDisplayManager.createRightUIDisplay(266,574);
                 }
             }
         }
+        
     }
 
     private View extractUI(int mode) {

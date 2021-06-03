@@ -21,13 +21,13 @@ import java.util.List;
 
 /**@hide*/
 final class UIDisplayAdapter extends DisplayAdapter {
-    static final String TAG="AppLens";
+    static final String TAG="LENS";
     
     private static final String UNIQUE_ID_PREFIX = "UIDisplay";
 
     private final Handler mUIHandler;
     private Context mContext;
-    private int numUi;
+    private int numUi = -1;
     private final SparseArray<UIDisplayHandle> mUIDisps = 
         new SparseArray<UIDisplayHandle>();
 
@@ -36,7 +36,6 @@ final class UIDisplayAdapter extends DisplayAdapter {
         super(syncRoot, context, handler, listener, TAG);
         mContext = context;
         mUIHandler = uiHandler;
-        numUi = -1;
     }
 
     @Override
@@ -62,7 +61,11 @@ final class UIDisplayAdapter extends DisplayAdapter {
     }
 
     public void setDisplayId(int displayId, int uiNum) {
-        mUIDisps.get(uiNum).setDisplayId(displayId);
+        if (mUIDisps.get(uiNum) == null) {
+        } else {
+            mUIDisps.get(uiNum).setDisplayId(displayId);
+        }
+        
     }
     
     public int getLeftUIDisplay(String deviceName) {
@@ -134,11 +137,15 @@ final class UIDisplayAdapter extends DisplayAdapter {
         }
     }
 */
-    public void relayoutUIDisplay(int x, int y, float scale, int num) {
+    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale) {
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        mUIDisps.get(num).relayoutLocked(x,y,scale);
-        if (mUIDisps.indexOfKey(num+4) >= 0) 
-            mUIDisps.get((num) + 4).relayoutLocked(x+(int)(metrics.widthPixels/2), y, scale);
+        Slog.w("sunjae", "array size: "+mUIDisps.size());
+        int size =( mUIDisps.size()/2);
+        for (int i = 0; i < size; i++) {
+            mUIDisps.get(i).relayoutLocked(left, right, bottom, top, scale);
+            if (mUIDisps.indexOfKey(i+4) >= 0) 
+                mUIDisps.get((i) + 4).relayoutLocked(left+(int)(metrics.widthPixels/2), right+(int)(metrics.widthPixels/2), bottom, top,  scale);
+        }
     }
 
     private void dismissUIDisplay() {
@@ -251,8 +258,8 @@ final class UIDisplayAdapter extends DisplayAdapter {
         private UIDisplayWindow mWindow;
         private UIDisplayDevice mDevice;
 
-        private int mX;
-        private int mY;
+        private float mX;
+        private float mY;
         private float mScale;
         private boolean mIsRight;
 
@@ -281,10 +288,27 @@ final class UIDisplayAdapter extends DisplayAdapter {
             return mIsRight;
         }
 
-        private void relayoutLocked(int x, int y, float scale) {
-            mX = x;
-            mY = y;
-            mScale = scale;
+        private void relayoutLocked(float left, float right, float bottom, float top, float scale) {
+            switch (mNumber%4) {
+                case 0:
+                    mX = left;
+                    mY = top;
+                    mScale = scale;
+                    break;
+                case 1:
+                    mX = right;
+                    mY = top;
+                    mScale = scale;
+                    break;
+                case 2:
+                    mX = (left+right)/2;
+                    mY = top;
+                    mScale = scale;
+                case 3:
+                    mX = (left+right)/2;
+                    mY = bottom;
+                    mScale = scale;
+            }
             mUIHandler.post(mRelayoutRunnable);
         }
 

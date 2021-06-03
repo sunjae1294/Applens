@@ -79,7 +79,7 @@ interface IDisplayManager {
 
     int createUIDisplay(int width, int height);
 
-    void relayoutUIDisplay(int x, int y, float scale, int num);
+    void relayoutUIDisplay(float left, float right, float bottom, float top, float scale);
 
     int createRightUIDisplay(int width, int height);
 
