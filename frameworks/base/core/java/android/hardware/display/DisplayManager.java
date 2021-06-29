@@ -655,13 +655,31 @@ public final class DisplayManager {
         return mGlobal.createUIDisplay(width, height);
     }
 
+    public void dismissUIDisplay() {
+        mGlobal.dismissUIDisplay();
+    }
+
     /** @hide */
     public int createRightUIDisplay(int width, int height) {
         return mGlobal.createRightUIDisplay(width, height);
     }
 
-    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale) {
-         mGlobal.relayoutUIDisplay(left, right, bottom, top ,scale);
+    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale, int id) {
+         mGlobal.relayoutUIDisplay(left, right, bottom, top ,scale, id);
+    }
+
+    public void hideUIDisplay() {
+        mGlobal.hideUIDisplay();
+    }
+
+    /** @hide */
+    public void resizeUIDisplay(int width, int height, int id) {
+        mGlobal.resizeUIDisplay(width, height, id);
+    }
+
+    /** @hide */
+    public int getUIDisplayCount() {
+        return mGlobal.getUIDisplayCount();
     }
     
     /** Applens: end */

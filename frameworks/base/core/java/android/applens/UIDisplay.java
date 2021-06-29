@@ -29,17 +29,21 @@ public class UIDisplay extends Presentation {
     
     private AppLensManager mAppLensManager;
 
-    ViewGroup mContentView;
+    FrameLayout mContentView;
     Context mOuterContext;
     LinearLayout mLayout;
     ArrayList<View> mTargetViews;
     WindowManager.LayoutParams mWindowParams;
     View subtree;
+    int mWidth;
+    int mHeight;
 
-    public UIDisplay(Context outerContext, Display display, ViewGroup subtree) {
+    public UIDisplay(Context outerContext, Display display, ViewGroup subtree, int width, int height) {
         super(outerContext, display);
         this.mOuterContext = outerContext;
         this.subtree = (View)subtree;
+        this.mWidth = width;
+        this.mHeight = height;
     }
 
     @Override
@@ -52,9 +56,14 @@ public class UIDisplay extends Presentation {
         if (subtree != null) {
             Window window = getWindow();
             mWindowParams = window.getAttributes();
+            Log.d("sunjae", "windowparams: " +mWindowParams.width+":"+mWindowParams.height);
             window.setFormat(PixelFormat.TRANSLUCENT);
-            mContentView = (ViewGroup)window.getDecorView().findViewById(android.R.id.content);
+            mContentView = window.getDecorView().findViewById(android.R.id.content);
+            ViewGroup.LayoutParams params = mContentView.getLayoutParams();
+            params.width = mWidth;
+            params.height = mHeight;
             mContentView.addView(subtree);
+            subtree.invalidate();
 
             mTargetViews = new ArrayList<View>();
             Queue<ViewGroup> queue = new LinkedList<ViewGroup>();

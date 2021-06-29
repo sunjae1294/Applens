@@ -31,9 +31,9 @@ final class UIDisplayWindow {
     private static final boolean DEBUG = true;
 
     private final float INITIAL_SCALE = 1.0f;
-    private final float MIN_SCALE = 0.3f;
+    private final float MIN_SCALE = 0.1f;
     private final float MAX_SCALE = 1.0f;
-    private final float WINDOW_ALPHA = 1.0f;
+    private float WINDOW_ALPHA = 1.0f;
 
     // When true, disables support for moving and resizing the overlay.
     // The window is made non-touchable, which makes it possible to
@@ -180,10 +180,8 @@ final class UIDisplayWindow {
         if (mSecure) {
             mWindowParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
         }
-        Slog.w("sunjae", "isRight?"+mIsRight);
         if (mIsRight) {
 
-            Slog.w("sunjae", "isRight="+mIsRight);
             mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
         }
 
@@ -195,7 +193,6 @@ final class UIDisplayWindow {
         mWindowX = mIsRight ? (int)(metrics.widthPixels/2) : 0;
         mWindowY = 0;
         mWindowScale = INITIAL_SCALE;
-        Slog.w("sunjae", mContext+" :UIWindow created"); 
     }
 
     public void relayoutUIDisplay(float x, float y, float scale) {
@@ -205,7 +202,24 @@ final class UIDisplayWindow {
         relayout();
 
     }
+
+    public void hideUIDisplay() {
+        WINDOW_ALPHA = 0.0f;
+        mWindowParams.alpha = WINDOW_ALPHA;
+        mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+        relayout();
+    }
+
+    public void showUIDisplay() {
+        WINDOW_ALPHA = 1.0f;
+        mWindowParams.alpha = WINDOW_ALPHA;
+        mWindowParams.flags ^= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+        relayout();
+    }
+
     private void updateWindowParams() {
+        mTextureView.getLayoutParams().width = mWidth;
+        mTextureView.getLayoutParams().height = mHeight;
         mTextureView.setScaleX(mWindowScale);
         mTextureView.setScaleY(mWindowScale);
         int width = (int)(mWidth * mWindowScale);
@@ -282,7 +296,6 @@ final class UIDisplayWindow {
     private final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent event) {
-            Slog.w("sunjae", "got touched!! default: " + mDefaultDisplay.getDisplayId() + " mine="+mDisplayId);
             ((InputEvent)event).setDisplayId(mDisplayId);
             mInputManager.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
             return true;

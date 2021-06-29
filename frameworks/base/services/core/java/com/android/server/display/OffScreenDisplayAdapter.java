@@ -19,12 +19,13 @@ import java.util.List;
 
 /**@hide*/
 final class OffScreenDisplayAdapter extends DisplayAdapter {
-    static final String TAG="AppLens";
+    static final String TAG="LENS";
     
     private static final String UNIQUE_ID_PREFIX = "OffScreen:";
 
     private final Handler mUIHandler;
     private Context mContext;
+    private int numApp = -1;
     private final ArrayList<OffScreenDisplayHandle> mOffScreens = 
         new ArrayList<OffScreenDisplayHandle>();
 
@@ -41,6 +42,7 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
     }
 
     public int createOffScreenDisplay() {
+        numApp++;
         updateOffScreenDisplayDevices();
         Slog.w(TAG, "createOffScreenDisplay");
         return mOffScreens.size();
@@ -64,14 +66,13 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
 
         int densityDpi = metrics.densityDpi;
 
-        ArrayList<OffScreenMode> modes = new ArrayList<>();
         OffScreenMode mode = new OffScreenMode(width, height, densityDpi);
-        modes.add(mode);
-        String name = "OffScreen #" + modes.size();
-        mOffScreens.add(new OffScreenDisplayHandle(name, mode, modes.size()));
+        String name = "OffScreen #" + numApp;
+        Slog.w(TAG, "creating "+name);
+        mOffScreens.add(new OffScreenDisplayHandle(name, mode, numApp));
     }
 
-    private void dismissOffScreenDisplay() {
+    public void dismissOffScreenDisplay() {
         for (OffScreenDisplayHandle off : mOffScreens) {
             off.dismissLocked();
         }

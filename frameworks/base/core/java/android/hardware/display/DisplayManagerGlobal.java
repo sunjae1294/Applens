@@ -458,6 +458,14 @@ public final class DisplayManagerGlobal {
         }
     }
 
+    public void dismissUIDisplay() {
+        try {
+            mDm.dismissUIDisplay();
+        } catch(RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
     /** @hide */
     public int createRightUIDisplay(int width, int height) {
         try {
@@ -467,13 +475,38 @@ public final class DisplayManagerGlobal {
         }
     }
 
-    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale) {
+    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale, int id) {
         try {
-            mDm.relayoutUIDisplay(left, right, bottom, top, scale);
+            mDm.relayoutUIDisplay(left, right, bottom, top, scale,id);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
 
+    }
+
+    public void hideUIDisplay() {
+        try {
+            mDm.hideUIDisplay();
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
+    /** @hide */
+    public void resizeUIDisplay(int width, int height, int id) {
+        try {
+            mDm.resizeUIDisplay(width, height, id);
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+    /** @hide */
+    public int getUIDisplayCount() {
+        try {
+            return mDm.getUIDisplayCount();
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
     }
     /**Applens: end */
 

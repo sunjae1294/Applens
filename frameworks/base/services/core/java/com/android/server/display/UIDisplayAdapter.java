@@ -22,6 +22,7 @@ import java.util.List;
 /**@hide*/
 final class UIDisplayAdapter extends DisplayAdapter {
     static final String TAG="LENS";
+    static final boolean VR = false;
     
     private static final String UNIQUE_ID_PREFIX = "UIDisplay";
 
@@ -137,21 +138,46 @@ final class UIDisplayAdapter extends DisplayAdapter {
         }
     }
 */
-    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale) {
-        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        Slog.w("sunjae", "array size: "+mUIDisps.size());
-        int size =( mUIDisps.size()/2);
+
+    public void hideUIDisplay() {
+       int size = (mUIDisps.size()/2);
         for (int i = 0; i < size; i++) {
-            mUIDisps.get(i).relayoutLocked(left, right, bottom, top, scale);
+            mUIDisps.get(i).hideLocked();
             if (mUIDisps.indexOfKey(i+4) >= 0) 
-                mUIDisps.get((i) + 4).relayoutLocked(left+(int)(metrics.widthPixels/2), right+(int)(metrics.widthPixels/2), bottom, top,  scale);
+                mUIDisps.get((i) + 4).hideLocked();
         }
     }
 
-    private void dismissUIDisplay() {
-        for (int i = 0; i < numUi; i++) {
+    public int getUIDisplayCount() {
+        int size = (mUIDisps.size() /2);
+        return size;
+    }
+
+    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale, int id) {
+        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+        int size =( mUIDisps.size());
+        for (int i = 0; i < size; i++) {
+            mUIDisps.get(i).relayoutLocked(left, right, bottom, top, scale, id);
+            if (mUIDisps.indexOfKey(i+4) >= 0) {
+                mUIDisps.get((i) + 4).relayoutLocked(left+(int)(metrics.widthPixels/2), 
+                        right+(int)(metrics.widthPixels/2), bottom, top,  scale, id);
+            }
+        }
+    }
+
+    public void resizeUIDisplay(int width, int height, int id) {
+        mUIDisps.get(id).resizeLocked(width, height);
+        if (mUIDisps.indexOfKey(id+4) >= 0) {
+            mUIDisps.get(id+4).resizeLocked(width, height);
+        }
+    }
+
+    public void dismissUIDisplay() {
+        int size = mUIDisps.size();
+        for (int i = 0; i < size; i++) {
             mUIDisps.get(i).dismissLocked();
-            mUIDisps.get(i+4).dismissLocked();
+            if (mUIDisps.indexOfKey(i+4) >= 0)
+                mUIDisps.get(i+4).dismissLocked();
         }
     }
 
@@ -237,10 +263,10 @@ final class UIDisplayAdapter extends DisplayAdapter {
         }
     }
 
-    private static final class UIMode {
-        final int mWidth;
-        final int mHeight;
-        final int mDensityDpi;
+    private static class UIMode {
+        public int mWidth;
+        public int mHeight;
+        public int mDensityDpi;
 
         UIMode(int width, int height, int densityDpi) {
             mWidth = width;
@@ -288,34 +314,54 @@ final class UIDisplayAdapter extends DisplayAdapter {
             return mIsRight;
         }
 
-        private void relayoutLocked(float left, float right, float bottom, float top, float scale) {
-            switch (mNumber%4) {
+        private void relayoutLocked(float left, float right, float bottom, float top, float scale, int id) {
+            switch (id) {
                 case 0:
-                    mX = left;
-                    mY = top;
-                    mScale = scale;
                     break;
                 case 1:
-                    mX = right;
-                    mY = top;
-                    mScale = scale;
                     break;
                 case 2:
-                    mX = (left+right)/2;
-                    mY = top;
-                    mScale = scale;
+                    switch (mNumber%4) {
+                        case 0:
+                            mX = left - 200;
+                            mY = top ;
+                            mScale = 0.3f;
+                            break;
+                        case 1:
+                            mX = left - 400;
+                            mY = top + 400;
+                            mScale = scale;
+                            break;
+                        case 2:
+                            mX = (right)+200;
+                            mY = top;
+                            mScale = 0.3f;
+                        case 3:
+                            mX = (right)+200;
+                            mY = top+400;
+                            mScale = scale;
+                    }
+                    break;
                 case 3:
-                    mX = (left+right)/2;
-                    mY = bottom;
-                    mScale = scale;
+                    break;
+                case 4: 
+                    break;
             }
             mUIHandler.post(mRelayoutRunnable);
+        }
+
+        private void hideLocked() {
+            mUIHandler.post(mHideRunnable);
         }
 
         private void showLocked() {
             mUIHandler.post(mShowRunnable);
         }
-
+        private void resizeLocked(int width, int height) {
+            mMode.mWidth = width;
+            mMode.mHeight = height;
+             mUIHandler.post(mResizeRunnable);
+        }
         private void dismissLocked() {
             mUIHandler.removeCallbacks(mShowRunnable);
             mUIHandler.post(mDismissRunnable);
@@ -351,6 +397,19 @@ final class UIDisplayAdapter extends DisplayAdapter {
             }
         }
 
+        private final Runnable mResizeRunnable = new Runnable() {
+            @Override
+            public void run() {
+                UIDisplayWindow window;
+                UIMode mode = mMode;
+                synchronized(getSyncRoot()) {
+                    window = mWindow;
+                    window.resize(mode.mWidth, mode.mHeight, mode.mDensityDpi);
+                    mWindow.showUIDisplay();
+                }
+            }
+        };
+
         private final Runnable mShowRunnable = new Runnable() {
             @Override
             public void run() {
@@ -365,13 +424,25 @@ final class UIDisplayAdapter extends DisplayAdapter {
             }
         };
 
+        private final Runnable mHideRunnable = new Runnable() {
+            @Override
+            public void run() {
+                UIDisplayWindow window;
+                synchronized(getSyncRoot()) {
+                    window = mWindow;
+                    window.hideUIDisplay();
+                }
+            }
+        };
+
         private final Runnable mRelayoutRunnable = new Runnable() {
             @Override
             public void run() {
                 UIDisplayWindow window;
                 synchronized (getSyncRoot()){
                     window = mWindow;
-                    window.relayoutUIDisplay(mX, mY, mScale);
+                    if (mWindow != null)
+                        window.relayoutUIDisplay(mX, mY, mScale);
                 }
             }
         };
@@ -385,6 +456,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
                     mWindow = null;
                 }
                 if (window != null) {
+                    Slog.w("sunjae", "dismiss Windows!!");
                     window.dismiss();
                 }
             }

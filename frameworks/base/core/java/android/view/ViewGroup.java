@@ -5276,7 +5276,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 mLastTouchDownIndex++;
             }
         } else {
-            throw new IndexOutOfBoundsException("index=" + index + " count=" + count);
+            //throw new IndexOutOfBoundsException("index=" + index + " count=" + count);
         }
     }
 

@@ -77,11 +77,21 @@ interface IDisplayManager {
     //applens
     int createOffScreenDisplay();
 
+    void dismissUIDisplay();
+
     int createUIDisplay(int width, int height);
 
-    void relayoutUIDisplay(float left, float right, float bottom, float top, float scale);
+    void relayoutUIDisplay(float left, float right, float bottom, float top, float scale, int id);
 
     int createRightUIDisplay(int width, int height);
+    
+    void hideUIDisplay();
+
+    void resizeUIDisplay(int widht, int height, int id);
+
+    
+    int getUIDisplayCount();
+    //applens
 
     // No permissions required, but must be same Uid as the creator.
     void resizeVirtualDisplay(in IVirtualDisplayCallback token,

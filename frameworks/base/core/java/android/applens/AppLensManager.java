@@ -40,7 +40,6 @@ public class AppLensManager {
 
     public AppLensManager() {
         mSubtrees = new ArrayList<ViewGroup>();
-        Log.d("sunjae", "AppLens Manager created!!");
     }
 
     public static AppLensManager getInstance() {

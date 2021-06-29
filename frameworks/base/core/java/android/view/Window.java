@@ -317,6 +317,18 @@ public abstract class Window {
     private boolean mOverlayWithDecorCaptionEnabled = false;
     private boolean mCloseOnSwipeEnabled = false;
 
+    /** applens: start */
+    private boolean mIsMigrated = false;
+    
+    /** @hide*/
+    public void setMigrated(boolean migrated) {
+        mIsMigrated = migrated;
+    }
+    /** @hide */
+    public boolean isMigrated() {
+        return mIsMigrated;
+    }
+
     // The current window attributes.
     @UnsupportedAppUsage
     private final WindowManager.LayoutParams mWindowAttributes =

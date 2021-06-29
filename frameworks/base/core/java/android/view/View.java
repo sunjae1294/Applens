@@ -812,6 +812,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     private boolean isMigrated = false;
     private boolean isMeasuring = false;
     private boolean watchUpdate = false;
+    private boolean macroUpdate = false;
 
     /** @hide */
     public ViewParent mVirtualParent = null;
@@ -829,6 +830,11 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     /** @hide */
     public void setWatchUpdate(boolean update) {
         watchUpdate = update;
+    }
+
+    /** @hide */
+    public void setMacroUpdate(boolean update) {
+        macroUpdate = update;
     }
     
     /** @hide */
@@ -6149,6 +6155,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         public void onClick(@NonNull View v) {
             if (mResolvedMethod == null) {
                 resolveMethod(mHostView.getContext(), mMethodName);
+                Log.d("LENS", "clicked= "+v);
             }
 
             try {
@@ -22569,13 +22576,29 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         }
 
         notifyAppearedOrDisappearedForContentCaptureIfNeeded(true);
-        /** applens: start */
+        if (mContext instanceof DecorContext) {
+            ((DecorContext)mContext).fetchSubtree();
+            ((DecorContext)mContext).parseMacro();
+        }
+        
+        /** applens: start
         if (watchUpdate) {
             if (mContext instanceof DecorContext) {
                 ((DecorContext)mContext).fetchSubtree();
             }
         }
-        /** applens: end */
+
+        if (macroUpdate) {
+            if (mContext instanceof DecorContext) {
+                ((DecorContext)mContext).parseMacro();
+            }
+        }
+
+        if (mContext instanceof Activity) {
+            Log.d("LENS", "instnace of activity");
+
+        }
+         applens: end */
     }
 
     private boolean hasParentWantsFocus() {

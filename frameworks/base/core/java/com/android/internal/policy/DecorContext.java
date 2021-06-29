@@ -52,6 +52,7 @@ public class DecorContext extends ContextThemeWrapper {
 
     private WeakReference<Context> mActivityContext;
 
+
     @VisibleForTesting
     public DecorContext(Context context, Context activityContext) {
         super(context.createDisplayContext(activityContext.getDisplay()), null);
@@ -136,7 +137,19 @@ public class DecorContext extends ContextThemeWrapper {
     public void fetchSubtree() {
         Context context = mActivityContext.get();
         if (context instanceof Activity) {
-            ((Activity)context).fetchSubtree(false);
+            if (((Activity)context).getWatchUpdate()){
+                ((Activity)context).fetchSubtree(false);
+            }
+        }
+    }
+
+    /** @hide */
+    public void parseMacro() {
+        Context context = mActivityContext.get();
+        if (context instanceof Activity) {
+            if (((Activity)context).getMacroUpdate()) {
+                ((Activity)context).parseTouch(false);
+            }
         }
     }
 

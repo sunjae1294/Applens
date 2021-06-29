@@ -1056,6 +1056,7 @@ public final class DisplayManagerService extends SystemService {
         if (isDefault) {
             mSyncRoot.notifyAll();
         }
+        Slog.w("LENS", device.getNameLocked()+" added!");
         /** applens: start */
         if (device.getNameLocked().substring(0,4).equals("UI #")) {
             Slog.w("sunjae", device.getNameLocked()+" Added");
@@ -1719,7 +1720,6 @@ public final class DisplayManagerService extends SystemService {
         public void onDisplayDeviceEvent(DisplayDevice device, int event) {
             switch (event) {
                 case DisplayAdapter.DISPLAY_DEVICE_EVENT_ADDED:
-                    Slog.w("LENS", "display added");
                     handleDisplayDeviceAdded(device);
                     break;
 
@@ -1996,13 +1996,32 @@ public final class DisplayManagerService extends SystemService {
             return mUIDisplayAdapter.createUIDisplay(width, height);
         }
 
+        public void dismissUIDisplay() {
+            mUIDisplayAdapter.dismissUIDisplay();
+            mOffScreenDisplayAdapter.dismissOffScreenDisplay();
+        }
+
         /** @hide */
         public int createRightUIDisplay(int width, int height) {
             return mUIDisplayAdapter.createRightUIDisplay(width, height);
         }
 
-        public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale){
-            mUIDisplayAdapter.relayoutUIDisplay(left,right,bottom, top, scale);            
+        public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale, int id){
+            mUIDisplayAdapter.relayoutUIDisplay(left,right,bottom, top, scale, id);            
+        }
+
+        /** @hide */
+        public int getUIDisplayCount() {
+            return mUIDisplayAdapter.getUIDisplayCount();
+        }
+        /** @hide */
+        public void resizeUIDisplay(int width, int height, int id) {
+            mUIDisplayAdapter.resizeUIDisplay(width, height, id);
+        }
+
+        /** @hide */
+        public void hideUIDisplay() {
+            mUIDisplayAdapter.hideUIDisplay();
         } 
         /**Applens: end */
 
