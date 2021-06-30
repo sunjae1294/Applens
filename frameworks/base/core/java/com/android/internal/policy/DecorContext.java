@@ -32,6 +32,7 @@ import java.lang.ref.WeakReference;
 
 /**applens: start */
 import android.app.Activity;
+import android.view.View;
 import android.view.MotionEvent;
 import android.util.Log;
 /**applens: end */
@@ -51,6 +52,7 @@ public class DecorContext extends ContextThemeWrapper {
     private ContentCaptureManager mContentCaptureManager;
 
     private WeakReference<Context> mActivityContext;
+
 
 
     @VisibleForTesting
@@ -134,11 +136,11 @@ public class DecorContext extends ContextThemeWrapper {
     }
 
     /** @hide */
-    public void fetchSubtree() {
+    public void fetchSubtree(View view) {
         Context context = mActivityContext.get();
         if (context instanceof Activity) {
             if (((Activity)context).getWatchUpdate()){
-                ((Activity)context).fetchSubtree(false);
+                ((Activity)context).fetchSubtree(false, view);
             }
         }
     }
@@ -150,6 +152,14 @@ public class DecorContext extends ContextThemeWrapper {
             if (((Activity)context).getMacroUpdate()) {
                 ((Activity)context).parseTouch(false);
             }
+        }
+    }
+
+    /** @hide */
+    public void newDecorView(View view) {
+        Context context = mActivityContext.get();
+        if (context instanceof Activity) {
+            ((Activity)context).newDecorView(view);
         }
     }
 

@@ -76,6 +76,7 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
         for (OffScreenDisplayHandle off : mOffScreens) {
             off.dismissLocked();
         }
+        numApp = -1;
     }
 
     private class OffScreenDisplayDevice extends DisplayDevice {

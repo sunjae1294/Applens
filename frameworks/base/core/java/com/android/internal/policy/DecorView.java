@@ -268,6 +268,10 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
     private Insets mLastBackgroundInsets = Insets.NONE;
     private boolean mDrawLegacyNavigationBarBackground;
 
+    /** applens: start */
+    private boolean mIsMigrated = false;
+    /** applens: end */
+
     DecorView(Context context, int featureId, PhoneWindow window,
             WindowManager.LayoutParams params) {
         super(context);
@@ -318,6 +322,13 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         // combine bools after computation, so each method above always executes
         return statusOpaque || navOpaque || decorOpaque;
     }
+
+    /** applens: start */
+    /** @hide */
+    public void setMigrated(boolean migrated) {
+        mIsMigrated = migrated;
+    }
+    /** applend: end */
 
     boolean gatherTransparentRegion(ColorViewState colorViewState, Region region) {
         if (colorViewState.view != null && colorViewState.visible && isResizing()) {

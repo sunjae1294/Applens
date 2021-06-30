@@ -58,6 +58,7 @@ public class UIDisplay extends Presentation {
             mWindowParams = window.getAttributes();
             Log.d("sunjae", "windowparams: " +mWindowParams.width+":"+mWindowParams.height);
             window.setFormat(PixelFormat.TRANSLUCENT);
+            window.getDecorView().setMigrated(true);
             mContentView = window.getDecorView().findViewById(android.R.id.content);
             ViewGroup.LayoutParams params = mContentView.getLayoutParams();
             params.width = mWidth;

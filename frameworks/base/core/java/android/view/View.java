@@ -166,6 +166,7 @@ import java.util.function.Predicate;
 
 /* applens: start */
 import com.android.internal.policy.DecorContext;
+import com.android.internal.policy.DecorView;
 import android.app.Activity;
 import android.app.Activity;
 import android.widget.LinearLayout;
@@ -22576,8 +22577,9 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         }
 
         notifyAppearedOrDisappearedForContentCaptureIfNeeded(true);
-        if (mContext instanceof DecorContext) {
-            ((DecorContext)mContext).fetchSubtree();
+        if (mContext instanceof DecorContext && this instanceof DecorView) {
+            Log.d("sunjae", "found new UI");
+            ((DecorContext)mContext).fetchSubtree(this);
             ((DecorContext)mContext).parseMacro();
         }
         

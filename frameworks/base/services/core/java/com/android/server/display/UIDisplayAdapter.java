@@ -179,6 +179,8 @@ final class UIDisplayAdapter extends DisplayAdapter {
             if (mUIDisps.indexOfKey(i+4) >= 0)
                 mUIDisps.get(i+4).dismissLocked();
         }
+        mUIDisps.clear();   
+       numUi = -1; 
     }
 
     private class UIDisplayDevice extends DisplayDevice {

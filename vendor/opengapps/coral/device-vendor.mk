@@ -1,0 +1,1 @@
+PRODUCT_PACKAGES += Phonesky PrebuiltGmsCore GmsCoreSetupPrebuilt GoogleServicesFramework 

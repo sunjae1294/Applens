@@ -155,6 +155,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /** applens: start */
+import com.android.internal.policy.DecorView;
 import android.view.Display;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -1880,7 +1881,7 @@ public class Activity extends ContextThemeWrapper
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    fetchSubtree(true);
+                    fetchSubtree(true, mWindow.getDecorView());
                 }
             }, 1000);
         }
@@ -1933,10 +1934,10 @@ public class Activity extends ContextThemeWrapper
     }
 
     /** @hide */
-    public void fetchSubtree(boolean firstTime) {
+    public void fetchSubtree(boolean firstTime, View decorView) {
         mAppLensManager = AppLensManager.getInstance();
 
-        if (extractSubtree(firstTime)) {
+        if (extractSubtree(firstTime, decorView)) {
             
             mAppLensManager = AppLensManager.getInstance();
             mAppLensManager.setPackageName(getPackageName());
@@ -1979,7 +1980,7 @@ public class Activity extends ContextThemeWrapper
         return res;
     }
 
-    private boolean extractSubtree(boolean firstTime) {
+    private boolean extractSubtree(boolean firstTime, View decorView) {
         boolean res;
         try {
             if (firstTime) {
@@ -1989,12 +1990,12 @@ public class Activity extends ContextThemeWrapper
                 uiParser = factory.newPullParser();
                 uiParser.setInput(fis, null);
                 displaySizes = new ArrayList<int[]>();
-                res = inflate(uiParser, firstTime);
+                res = inflate(uiParser, firstTime, decorView);
             }else{
-                res = inflate(uiParser, firstTime);
+                res = inflate(uiParser, firstTime, decorView);
             }
             if (res) {
-                mWindow.getDecorView().setWatchUpdate(false);
+                decorView.setWatchUpdate(false);
                 watchUpdate = false;
             } else {
                 return false;
@@ -2116,7 +2117,7 @@ public class Activity extends ContextThemeWrapper
         return true;
     }
 
-    private boolean inflate(XmlPullParser parser, boolean firstTime) throws Exception {
+    private boolean inflate(XmlPullParser parser, boolean firstTime, View decorView) throws Exception {
         int eventType = parser.getEventType();
         String activityName = "";
         ArrayList<ViewGroup> subtrees = mAppLensManager.getSubtrees();
@@ -2165,12 +2166,12 @@ public class Activity extends ContextThemeWrapper
                                 int viewID = getResources().getIdentifier(id, "id", getPackageName());
 
 
-                                view = findViewById(viewID);
+                                view = decorView.findViewById(viewID);
                                 String getParent = parser.getAttributeValue(null, "android:getParent");
 
                                 if (view == null) {
                                     Log.d(LENS_TAG, id+ " not found");
-                                    mWindow.getDecorView().setWatchUpdate(true);
+                                    decorView.setWatchUpdate(true);
                                     watchUpdate = true;
                                     return false;
                                 }
@@ -2330,6 +2331,10 @@ public class Activity extends ContextThemeWrapper
         assert stack.empty() == true;
     }
 
+    /** @hide */
+    public void newDecorView(View view) {
+        Log.d("sunjae", "new DecorView added");
+    }
 
 
     /** @hide */
