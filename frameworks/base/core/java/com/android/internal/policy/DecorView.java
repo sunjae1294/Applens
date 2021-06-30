@@ -112,6 +112,11 @@ import com.android.internal.widget.BackgroundFallback;
 import com.android.internal.widget.DecorCaptionView;
 import com.android.internal.widget.FloatingToolbar;
 
+/** applens: start */
+import android.content.ContextWrapper;
+import android.app.Activity;
+/** applens: end */
+
 import java.util.List;
 
 /** @hide */
@@ -301,6 +306,8 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         initResizingPaints();
 
         mLegacyNavigationBarBackgroundPaint.setColor(Color.BLACK);
+
+
     }
 
     void setBackgroundFallback(@Nullable Drawable fallbackDrawable) {
@@ -810,6 +817,25 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         if (changed && mResizeMode == RESIZE_MODE_DOCKED_DIVIDER) {
             getViewRootImpl().requestInvalidateRootRenderNode();
         }
+        /** applens: start */
+        if (!mIsMigrated) {
+            
+            if (mContext instanceof DecorContext) {
+                Log.d("sunjae", "DecorViewContext=" + this);
+                ((DecorContext)mContext).fetchSubtree((View)this);
+                ((DecorContext)mContext).parseMacro();
+                
+            } else if(mContext instanceof ContextWrapper) {
+                Context c = ((ContextWrapper) mContext).getBaseContext(); 
+                Log.d("sunjae", "DecorVIewWrapper = " + this + " context= "+ c);
+                if (((Activity) c).getWatchUpdate())
+                    ((Activity) c).fetchSubtree(false, (View)this);
+                if (((Activity) c).getMacroUpdate())
+                    ((Activity) c).parseTouch(false);
+            }
+        }
+        /** applens: end */
+        
     }
 
     @Override

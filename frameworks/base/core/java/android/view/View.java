@@ -22577,11 +22577,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         }
 
         notifyAppearedOrDisappearedForContentCaptureIfNeeded(true);
-        if (mContext instanceof DecorContext && this instanceof DecorView) {
-            Log.d("sunjae", "found new UI");
-            ((DecorContext)mContext).fetchSubtree(this);
-            ((DecorContext)mContext).parseMacro();
-        }
         
         /** applens: start
         if (watchUpdate) {
