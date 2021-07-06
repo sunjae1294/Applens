@@ -1857,6 +1857,8 @@ public class Activity extends ContextThemeWrapper
     protected void onPostResume() {
         final Window win = getWindow();
         if (win != null) win.makeActive();
+
+        Log.d("hoyoung", "activity name="+mComponent.getClassName());
         if (mActionBar != null) mActionBar.setShowHideAnimationEnabled(true);
         mCalled = true;
         mDisplayManager = (DisplayManager) this.getSystemService(Context.DISPLAY_SERVICE);
