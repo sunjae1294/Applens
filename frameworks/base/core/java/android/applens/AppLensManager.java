@@ -9,6 +9,7 @@ import android.view.Display;
 import android.content.Intent;
 import android.app.Activity;
 
+import android.hardware.display.DisplayManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -37,18 +38,32 @@ public class AppLensManager {
     public static int mRecursionDepth = 0;
 
     private String mPackageName = null;
+    private DisplayManager mDisplayManager;
 
-    public AppLensManager() {
+    public AppLensManager(Context context) {
         mSubtrees = new ArrayList<ViewGroup>();
+        mContext = context;
+        mDisplayManager = (DisplayManager) mContext.getSystemService(Context.DISPLAY_SERVICE);
+        
+    }
+
+    public static AppLensManager getInstance(Context context) {
+        synchronized(AppLensManager.class) {
+            if (sInstance == null) {
+                sInstance = new AppLensManager(context);
+            }
+            return sInstance;
+        }
     }
 
     public static AppLensManager getInstance() {
         synchronized(AppLensManager.class) {
-            if (sInstance == null) {
-                sInstance = new AppLensManager();
-            }
             return sInstance;
         }
+    }
+
+    public void dismissUIDisplay() {
+        mDisplayManager.dismissUIDisplay();    
     }
 
     public void setPackageName(String packageName) {

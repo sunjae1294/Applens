@@ -1937,7 +1937,7 @@ public class Activity extends ContextThemeWrapper
 
     /** @hide */
     public void fetchSubtree(boolean firstTime, View decorView) {
-        mAppLensManager = AppLensManager.getInstance();
+        mAppLensManager = AppLensManager.getInstance(this);
 
         if (extractSubtree(firstTime, decorView)) {
             
@@ -2332,12 +2332,6 @@ public class Activity extends ContextThemeWrapper
         }
         assert stack.empty() == true;
     }
-
-    /** @hide */
-    public void newDecorView(View view) {
-        Log.d("sunjae", "new DecorView added");
-    }
-
 
     /** @hide */
     public void migrateUI() {

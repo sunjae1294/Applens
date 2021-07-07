@@ -168,7 +168,7 @@ import java.util.function.Predicate;
 import com.android.internal.policy.DecorContext;
 import com.android.internal.policy.DecorView;
 import android.app.Activity;
-import android.app.Activity;
+import android.applens.AppLensManager;
 import android.widget.LinearLayout;
 /* applens: end */
 
@@ -814,6 +814,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     private boolean isMeasuring = false;
     private boolean watchUpdate = false;
     private boolean macroUpdate = false;
+
 
     /** @hide */
     public ViewParent mVirtualParent = null;
@@ -14270,7 +14271,15 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                 if (res)
                     return true;
             }
-            /** applens: end*/
+            
+            if (AppLensManager.getInstance() != null) {
+                String name = getResources().getResourceName(getId());
+                Log.d("sunjae", "touched ui="+name);
+                if (name.equals("@id/add_cart_bin")){
+                    AppLensManager.getInstance().dismissUIDisplay();
+                }
+            }
+
             return dispatchTouchEvent(event);
         } else {
             return dispatchGenericMotionEvent(event);

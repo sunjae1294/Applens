@@ -821,17 +821,17 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         if (!mIsMigrated) {
             
             if (mContext instanceof DecorContext) {
-                Log.d("sunjae", "DecorViewContext=" + this);
                 ((DecorContext)mContext).fetchSubtree((View)this);
                 ((DecorContext)mContext).parseMacro();
                 
             } else if(mContext instanceof ContextWrapper) {
-                Context c = ((ContextWrapper) mContext).getBaseContext(); 
-                Log.d("sunjae", "DecorVIewWrapper = " + this + " context= "+ c);
-                if (((Activity) c).getWatchUpdate())
-                    ((Activity) c).fetchSubtree(false, (View)this);
-                if (((Activity) c).getMacroUpdate())
-                    ((Activity) c).parseTouch(false);
+                Context c = ((ContextWrapper) mContext).getBaseContext();
+               if (c instanceof Activity) {
+                    if (((Activity) c).getWatchUpdate())
+                        ((Activity) c).fetchSubtree(false, (View)this);
+                    if (((Activity) c).getMacroUpdate())
+                        ((Activity) c).parseTouch(false);
+               } 
             }
         }
         /** applens: end */

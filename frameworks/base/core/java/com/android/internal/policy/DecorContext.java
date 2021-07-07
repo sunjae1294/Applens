@@ -155,13 +155,5 @@ public class DecorContext extends ContextThemeWrapper {
         }
     }
 
-    /** @hide */
-    public void newDecorView(View view) {
-        Context context = mActivityContext.get();
-        if (context instanceof Activity) {
-            ((Activity)context).newDecorView(view);
-        }
-    }
-
     /**applens: end */
 }
