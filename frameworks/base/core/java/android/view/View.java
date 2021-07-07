@@ -14271,7 +14271,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                 if (res)
                     return true;
             }
-            
+/*            
             if (AppLensManager.getInstance() != null) {
                 String name = getResources().getResourceName(getId());
                 Log.d("sunjae", "touched ui="+name);
@@ -14279,7 +14279,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                     AppLensManager.getInstance().dismissUIDisplay();
                 }
             }
-
+*/
             return dispatchTouchEvent(event);
         } else {
             return dispatchGenericMotionEvent(event);
