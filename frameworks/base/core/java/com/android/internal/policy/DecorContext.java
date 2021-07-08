@@ -155,5 +155,13 @@ public class DecorContext extends ContextThemeWrapper {
         }
     }
 
+    public boolean bringToFront() {
+        Context context = mActivityContext.get();
+        if (context instanceof Activity) {
+            return ((Activity)context).bringToFront();
+        }
+        return false;
+    }
+
     /**applens: end */
 }

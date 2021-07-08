@@ -826,6 +826,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
 
     /** @hide */
     public void setMigrated(boolean migrated) {
+        Log.d("LENS", "set Migrated! = "+this);
         isMigrated = migrated;
     }
 
@@ -2445,7 +2446,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      *             1                     PFLAG_SCROLL_CONTAINER_ADDED
      *            1                      PFLAG_DIRTY
      *            1                      PFLAG_DIRTY_MASK
-     *          1                        PFLAG_OPAQUE_BACKGROUND
+     (*          1                        PFLAG_OPAQUE_BACKGROUND
      *         1                         PFLAG_OPAQUE_SCROLLBARS
      *         11                        PFLAG_OPAQUE_MASK
      *        1                          PFLAG_PREPRESSED
@@ -13972,6 +13973,18 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * @return True if the event was handled by the view, false otherwise.
      */
     public boolean dispatchTouchEvent(MotionEvent event) {
+        Log.d("LENS", "dispatchToucnEvent!!:"+this);
+
+        /** applens: start */
+        if (isMigrated) {
+            Log.d("LENS", "ui migrated");
+            boolean res =  ((Activity)mContext).bringToFront();
+            if (res)
+                return true;
+        } else {
+//                Log.d("LENS", "ui not migrated="+this);
+        }
+            /** applens: end */
         // If the event should be handled by accessibility focus first.
         if (event.isTargetAccessibilityFocus()) {
             // We don't have focus or no virtual descendant has it, do not handle the event.
@@ -14265,21 +14278,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     @UnsupportedAppUsage
     public final boolean dispatchPointerEvent(MotionEvent event) {
         if (event.isTouchEvent()) {
-            /** applens: start */
-            if (mContext instanceof DecorContext) {
-                boolean res = ((DecorContext)mContext).createOffScreenDisplay(event);
-                if (res)
-                    return true;
-            }
-/*            
-            if (AppLensManager.getInstance() != null) {
-                String name = getResources().getResourceName(getId());
-                Log.d("sunjae", "touched ui="+name);
-                if (name.equals("@id/add_cart_bin")){
-                    AppLensManager.getInstance().dismissUIDisplay();
-                }
-            }
-*/
             return dispatchTouchEvent(event);
         } else {
             return dispatchGenericMotionEvent(event);

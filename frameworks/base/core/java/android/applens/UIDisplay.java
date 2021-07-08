@@ -69,6 +69,8 @@ public class UIDisplay extends Presentation {
             mTargetViews = new ArrayList<View>();
             Queue<ViewGroup> queue = new LinkedList<ViewGroup>();
             queue.add(mContentView);
+            ((View)(window.getDecorView())).setMigrated(true);
+            ((View)mContentView).setMigrated(true);
 
             while (!queue.isEmpty()) {
                 ViewGroup parent = queue.poll();

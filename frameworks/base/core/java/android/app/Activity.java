@@ -2009,6 +2009,20 @@ public class Activity extends ContextThemeWrapper
         return true;
     }
 
+    /** @hide */
+    public boolean bringToFront() {
+        
+        if (mComponent.getClassName().equals("com.lotte.on.product.activity.ProductDetailActivity") ||
+                mComponent.getClassName().equals("com.coupang.mobile.domain.sdp.interstellar.view.NewSdpActivity")) {
+            Log.d("LENS", "target Activity");
+           mDisplayManager.dismissUIDisplay();
+           return true;
+        } else {
+            Log.d("LENS", "not target Activity");
+            return false;
+        }
+    }
+
     private boolean inflateMacro(XmlPullParser parser, boolean firstTime) throws Exception {
         int eventType = parser.getEventType();
         String activityName = "";
@@ -2181,6 +2195,7 @@ public class Activity extends ContextThemeWrapper
                                 if (getParent!= null && getParent.equals("true")) {
                                     view = (View)view.getParent();
                                 }
+                                view.setMigrated(true);
 
                                 setViewAttribute(parser, view);
 
