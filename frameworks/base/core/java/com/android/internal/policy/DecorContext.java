@@ -146,11 +146,11 @@ public class DecorContext extends ContextThemeWrapper {
     }
 
     /** @hide */
-    public void parseMacro() {
+    public void parseMacro(View view) {
         Context context = mActivityContext.get();
         if (context instanceof Activity) {
             if (((Activity)context).getMacroUpdate()) {
-                ((Activity)context).parseTouch(false);
+                ((Activity)context).parseTouch(false, view);
             }
         }
     }

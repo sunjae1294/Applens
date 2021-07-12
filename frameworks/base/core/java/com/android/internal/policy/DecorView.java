@@ -792,6 +792,16 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         }
     }
 
+    /**@hide */
+    private Context getActivity(Context context) {
+        Context c = ((ContextWrapper) context).getBaseContext();
+        if (c instanceof Activity) {
+            return c;
+        } else {
+            return getActivity(c);
+        }
+    }
+
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
@@ -819,18 +829,21 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
         }
         /** applens: start */
         if (!mIsMigrated) {
-            
             if (mContext instanceof DecorContext) {
                 ((DecorContext)mContext).fetchSubtree((View)this);
-                ((DecorContext)mContext).parseMacro();
+                ((DecorContext)mContext).parseMacro((View)this);
                 
             } else if(mContext instanceof ContextWrapper) {
-                Context c = ((ContextWrapper) mContext).getBaseContext();
+                Context c = getActivity(mContext);
+               if (c instanceof DecorContext) {
+                    ((DecorContext)mContext).fetchSubtree((View)this);
+                    ((DecorContext)mContext).parseMacro((View)this);
+               }
                if (c instanceof Activity) {
                     if (((Activity) c).getWatchUpdate())
                         ((Activity) c).fetchSubtree(false, (View)this);
                     if (((Activity) c).getMacroUpdate())
-                        ((Activity) c).parseTouch(false);
+                        ((Activity) c).parseTouch(false, (View)this);
                } 
             }
         }

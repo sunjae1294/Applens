@@ -1876,8 +1876,10 @@ public class Activity extends ContextThemeWrapper
         }
         Display disp = getDisplay();
         mDispId = disp.getDisplayId();
-        if (mDispId>0) {
-            parseTouch(true);
+        //for test
+        if (mDispId>=0) {
+//        if (mDispId>0) {
+            parseTouch(true, mWindow.getDecorView());
 
             Handler handler = new Handler(Looper.getMainLooper());
             handler.postDelayed(new Runnable() {
@@ -1954,7 +1956,7 @@ public class Activity extends ContextThemeWrapper
     boolean isWaiting = false;
 
     /** @hide */
-    public boolean parseTouch(boolean firstTime) {
+    public boolean parseTouch(boolean firstTime, View decorView) {
         boolean res = false;
         try {
             if (firstTime) {
@@ -1963,9 +1965,9 @@ public class Activity extends ContextThemeWrapper
                 XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                 macroParser = factory.newPullParser();
                 macroParser.setInput(fis, null);
-                res = inflateMacro(macroParser, firstTime);
+                res = inflateMacro(macroParser, firstTime, decorView);
             } else {
-                res = inflateMacro(macroParser, firstTime);
+                res = inflateMacro(macroParser, firstTime, decorView);
             }
             if (res) {
                 mWindow.getDecorView().setMacroUpdate(false);
@@ -2023,7 +2025,7 @@ public class Activity extends ContextThemeWrapper
         }
     }
 
-    private boolean inflateMacro(XmlPullParser parser, boolean firstTime) throws Exception {
+    private boolean inflateMacro(XmlPullParser parser, boolean firstTime, View decorView) throws Exception {
         int eventType = parser.getEventType();
         String activityName = "";
         boolean startParse = !firstTime;
@@ -2044,11 +2046,11 @@ public class Activity extends ContextThemeWrapper
                             View view = null;
                             String id = parser.getAttributeValue(null, "android:viewId");
                             int viewID = getResources().getIdentifier(id, "id", getPackageName());
-                            final View tempView = findViewById(viewID);
+                            final View tempView = decorView.findViewById(viewID);
 
                             if (tempView == null) {
-                                Log.d(LENS_TAG, id+" not found");
-                                mWindow.getDecorView().setMacroUpdate(true);
+                                Log.d(LENS_TAG, id+" not found in "+decorView);
+                                decorView.setMacroUpdate(true);
                                 macroUpdate = true;
                                 return false;
                             }
