@@ -296,6 +296,12 @@ final class UIDisplayWindow {
     private final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent event) {
+            float oldX = event.getX();
+            float oldY = event.getY();
+            float newX = oldX / mWindowScale;
+            float newY = oldY / mWindowScale;
+            Slog.w("sunjae", "event= X="+oldX+" Y="+oldY+" newX="+newX+" newY="+newY+" rawX="+event.getRawX()+" rawY="+event.getRawY());
+            event.setLocation(newX, newY);
             ((InputEvent)event).setDisplayId(mDisplayId);
             mInputManager.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
             return true;

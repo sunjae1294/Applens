@@ -55,14 +55,12 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
     }
 
     private void updateOffScreenDisplayDevicesLocked() {
-        //iint width = 1440;
-        //int height = 3040;
+        int width = 1440;
+        int height = 3040;
 
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
         //int width = metrics.widthPixels;
         //int height = metrics.heightPixels;
-        int width = metrics.widthPixels;
-        int height = metrics.heightPixels;
 
         int densityDpi = metrics.densityDpi;
 
