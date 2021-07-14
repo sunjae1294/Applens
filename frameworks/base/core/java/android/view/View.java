@@ -826,7 +826,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
 
     /** @hide */
     public void setMigrated(boolean migrated) {
-        Log.d("LENS", "set Migrated! = "+this);
         isMigrated = migrated;
     }
 
@@ -6158,7 +6157,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         public void onClick(@NonNull View v) {
             if (mResolvedMethod == null) {
                 resolveMethod(mHostView.getContext(), mMethodName);
-                Log.d("LENS", "clicked= "+v);
             }
 
             try {
@@ -13973,16 +13971,13 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * @return True if the event was handled by the view, false otherwise.
      */
     public boolean dispatchTouchEvent(MotionEvent event) {
-        Log.d("LENS", "dispatchToucnEvent!!:"+this);
 
         /** applens: start */
         if (isMigrated) {
-            Log.d("LENS", "ui migrated");
             boolean res =  ((Activity)mContext).bringToFront();
             if (res)
                 return true;
         } else {
-//                Log.d("LENS", "ui not migrated="+this);
         }
             /** applens: end */
         // If the event should be handled by accessibility focus first.

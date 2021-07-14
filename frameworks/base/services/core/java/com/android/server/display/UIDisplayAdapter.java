@@ -321,6 +321,9 @@ final class UIDisplayAdapter extends DisplayAdapter {
                 case 0:
                     break;
                 case 1:
+                    mX = left;
+                    mY = top;
+                    mScale = scale;
                     break;
                 case 2:
                     switch (mNumber%4) {

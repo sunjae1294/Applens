@@ -160,6 +160,7 @@ import android.view.Display;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.hardware.display.DisplayManager;
+import android.hardware.input.InputManager;
 import android.applens.AppLensManager;
 import android.applens.UIDisplay;
 import android.view.Gravity;
@@ -1891,34 +1892,6 @@ public class Activity extends ContextThemeWrapper
         }
 
         /** applens: end */
-        /** aplens: start 
-        Log.d("sunjae", "activity name="+mComponent.getClassName());
-        if (mComponent.getClassName().equals("com.quanticapps.remotelgtvs.activity.ActivityMain")) {
-            fetchSubtree(true);
-//                    fetchUI(0);            
-        } else if (mComponent.getClassName().equals("com.heterofluid.uitestapp.MainActivity")) {
-            fetchSubtree(true);
-        //                fetchUI(1);
-        }
-
-        if (mComponent.getClassName().equals("com.coupang.mobile.domain.home.main.activity.MainActivity")) {
-            parseTouch(true);
-        }
-        else if (mComponent.getClassName().equals("com.coupang.mobile.domain.search.redesign.SearchRedesignActivity")) {
-            parseTouch(true);
-            fetchSubtree(true);
-        } else if (mComponent.getClassName().equals("com.lotte.on.main.activity.LotteMainActivity")) {
-            parseTouch(true);            
-        }
-
-        if (mComponent.getClassName().equals("com.coupang.mobile.domain.sdp.interstellar.view.NewSdpActivity")) {
-            fetchSubtree(true);
-        }
-
-        if (mComponent.getClassName().equals("com.google.android.gms.ads.AdActivity")) {
-            finish(); 
-        }
-         applens: end */
     }
 
     /** applens: start */
@@ -1988,15 +1961,26 @@ public class Activity extends ContextThemeWrapper
         boolean res;
         try {
             if (firstTime) {
-                File layoutFile = new File(getExternalFilesDir(null) + "/second_layout.xml");
-                FileInputStream fis = new FileInputStream(layoutFile);
-                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-                uiParser = factory.newPullParser();
-                uiParser.setInput(fis, null);
-                displaySizes = new ArrayList<int[]>();
-                res = inflate(uiParser, firstTime, decorView);
+                // for Youtube
+                if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
+                    Log.d(LENS_TAG, "found youtube");
+                    displaySizes = new ArrayList<int[]>();
+                    res = inflateYoutube(firstTime, decorView); 
+                } else {
+                    File layoutFile = new File(getExternalFilesDir(null) + "/second_layout.xml");
+                    FileInputStream fis = new FileInputStream(layoutFile);
+                    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+                    uiParser = factory.newPullParser();
+                    uiParser.setInput(fis, null);
+                    displaySizes = new ArrayList<int[]>();
+                    res = inflate(uiParser, firstTime, decorView);
+                }
             }else{
-                res = inflate(uiParser, firstTime, decorView);
+                if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
+                    res = inflateYoutube(firstTime, decorView);
+                } else { 
+                    res = inflate(uiParser, firstTime, decorView);
+                }
             }
             if (res) {
                 decorView.setWatchUpdate(false);
@@ -2133,6 +2117,63 @@ public class Activity extends ContextThemeWrapper
             }
         }
         return true;
+    }
+
+    private boolean inflateYoutube(boolean firstTime, View decorView) throws Exception {
+        ArrayList<ViewGroup> subtrees = mAppLensManager.getSubtrees();
+
+        //add new Subtree for display 1
+        ViewGroup subtree;         
+        if (firstTime) {
+            //add display
+            mAppLensManager.mNumDisplay++;
+            int width = 1440;
+            int height = 126;
+            int[] size = new int[]{width, height};
+            displaySizes.add(size);
+            FrameLayout newSubtree = new FrameLayout(this);
+            subtrees.add((ViewGroup)newSubtree);
+        }
+
+        subtree = (ViewGroup)subtrees.get(subtrees.size() -1);
+
+        //find seek bar
+        // id of parent view
+        String parentId = "@id/next_gen_watch_layout";
+        int parentViewId = getResources().getIdentifier(parentId,"id", getPackageName());
+        View parentView = decorView.findViewById(parentViewId);
+
+        if (parentView == null) {
+            decorView.setWatchUpdate(true);
+            watchUpdate = true;
+            Log.d(LENS_TAG, parentId + " not found");
+            return false;
+        } else {
+            int childCount = ((ViewGroup)parentView).getChildCount();
+            Log.d(LENS_TAG, "child count = " + childCount);
+            if (childCount < 8) {
+                decorView.setWatchUpdate(true);
+                watchUpdate = true;
+                return false;
+            }
+            //target View
+            View targetView = ((ViewGroup)parentView).getChildAt(6);
+            for (int i = 0; i < childCount; i++) {
+                View view = ((ViewGroup)parentView).getChildAt(i);
+                Log.d(LENS_TAG, "children = "+view);
+            }
+            Log.d(LENS_TAG,"6th child = "+targetView);
+            ViewGroup orgParent = (ViewGroup)targetView.getParent();
+            if (orgParent != null) {
+                orgParent.removeView(targetView);
+                targetView.mVirtualParent = orgParent;
+            }
+            ViewGroup.LayoutParams params = subtree.generateLayoutParams();
+            ViewGroup.LayoutParams orgParams = targetView.getLayoutParams();
+            targetView.clearPosition();
+            subtree.addView(targetView, params);
+            return true;
+        }
     }
 
     private boolean inflate(XmlPullParser parser, boolean firstTime, View decorView) throws Exception {
@@ -2374,6 +2415,17 @@ public class Activity extends ContextThemeWrapper
                 if (display.getName().equals("UI #"+i)) {
                     Presentation presentation = new UIDisplay(this,display,subtrees.get(i), width, height);
                     presentation.show();
+                    if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
+                        // touch video to bring up seek bar
+                        long downTime = SystemClock.uptimeMillis();
+                        long eventTime = SystemClock.uptimeMillis() + 100;
+                        int metaState = 0;
+                        MotionEvent ev = MotionEvent.obtain(downTime, eventTime, MotionEvent.ACTION_UP, 200, 200, metaState);
+                        ev.setDisplayId(1);
+                        InputManager mInputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
+                        mInputManager.injectInputEvent(ev, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+
+                    }
 //                    if (i >= uiDisplayCount)
 //                        mDisplayManager.createRightUIDisplay(width,height);
                 }
