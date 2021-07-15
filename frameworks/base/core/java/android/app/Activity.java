@@ -1878,8 +1878,8 @@ public class Activity extends ContextThemeWrapper
         Display disp = getDisplay();
         mDispId = disp.getDisplayId();
         //for test
-        if (mDispId>=0) {
-//        if (mDispId>0) {
+//        if (mDispId>=0) {
+        if (mDispId>0) {
             parseTouch(true, mWindow.getDecorView());
 
             Handler handler = new Handler(Looper.getMainLooper());
