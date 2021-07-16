@@ -782,6 +782,7 @@ public class Activity extends ContextThemeWrapper
     static final String LENS_TAG = "LENS";
     private boolean isMigrated = false;
     private int mDispId = 0;
+    private String mLensString = null;
     /** applens: end */
     static final String FRAGMENTS_TAG = "android:fragments";
     private static final String LAST_AUTOFILL_ID = "android:lastAutofillId";
@@ -1871,9 +1872,12 @@ public class Activity extends ContextThemeWrapper
         Bundle extras = getIntent().getExtras();
         byte b = 0; 
         if (extras != null) {
+            Log.d(LENS_TAG, "intent null");
             b = extras.getByte("isMigrated");
             if (b > 0)
                 isMigrated = true;
+            mLensString = extras.getString("test");
+
         }
         Display disp = getDisplay();
         mDispId = disp.getDisplayId();
@@ -2052,6 +2056,9 @@ public class Activity extends ContextThemeWrapper
                                         0;
                             if (type.equals("key")) {
                                 String text = parser.getAttributeValue(null, "android:string");
+                                if (text.equals("LensString")) {
+                                    text = mLensString;
+                                }
                                 ((EditText)view).getText().insert(((EditText)view).getSelectionStart(), text);
                                 Log.d(LENS_TAG, "inject: "+text+" to "+view);
                             } else if (type.equals("touch")) {
@@ -5836,6 +5843,9 @@ public class Activity extends ContextThemeWrapper
         /** applens: start */
         if (isMigrated) {
             intent.putExtra("isMigrated", (byte) 1);
+        }
+        if (mLensString != null) {
+            intent.putExtra("test", mLensString);
         }
         if (mParent == null) {
             options = transferSpringboardActivityOptions(options);
