@@ -140,12 +140,13 @@ final class UIDisplayAdapter extends DisplayAdapter {
 */
 
     public void hideUIDisplay() {
-       int size = (mUIDisps.size()/2);
+       int size = mUIDisps.size();
         for (int i = 0; i < size; i++) {
             mUIDisps.get(i).hideLocked();
             if (mUIDisps.indexOfKey(i+4) >= 0) 
                 mUIDisps.get((i) + 4).hideLocked();
         }
+
     }
 
     public int getUIDisplayCount() {
@@ -169,6 +170,15 @@ final class UIDisplayAdapter extends DisplayAdapter {
         mUIDisps.get(id).resizeLocked(width, height);
         if (mUIDisps.indexOfKey(id+4) >= 0) {
             mUIDisps.get(id+4).resizeLocked(width, height);
+        }
+    }
+
+    public void showUIDisplay() {
+       int size = mUIDisps.size();
+        for (int i = 0; i < size; i++) {
+            mUIDisps.get(i).visualizeLocked();
+            if (mUIDisps.indexOfKey(i+4) >= 0) 
+                mUIDisps.get((i) + 4).visualizeLocked();
         }
     }
 
@@ -359,6 +369,10 @@ final class UIDisplayAdapter extends DisplayAdapter {
             mUIHandler.post(mHideRunnable);
         }
 
+        private void visualizeLocked() {
+            mUIHandler.post(mVisualizeRunnable);
+        }
+
         private void showLocked() {
             mUIHandler.post(mShowRunnable);
         }
@@ -429,6 +443,17 @@ final class UIDisplayAdapter extends DisplayAdapter {
             }
         };
 
+        private final Runnable mVisualizeRunnable = new Runnable() {
+            @Override
+            public void run() {
+                UIDisplayWindow window;
+                synchronized(getSyncRoot()) {
+                    window = mWindow;
+                    window.showUIDisplay();
+                }
+            }
+        };
+        
         private final Runnable mHideRunnable = new Runnable() {
             @Override
             public void run() {

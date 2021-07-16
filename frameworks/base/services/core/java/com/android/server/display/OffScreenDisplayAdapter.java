@@ -48,6 +48,18 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
         return mOffScreens.size();
     }
 
+    public void hideOffScreenDisplay() {
+        for (OffScreenDisplayHandle off : mOffScreens) {
+            off.hideLocked();
+        }
+    }
+
+    public void showOffScreenDisplay() {
+        for (OffScreenDisplayHandle off : mOffScreens) {
+            off.visualizeLocked();
+        }
+    }
+
     private void updateOffScreenDisplayDevices() {
         synchronized(getSyncRoot()){
             updateOffScreenDisplayDevicesLocked();
@@ -192,6 +204,14 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
             mUIHandler.post(mShowRunnable);
         }
 
+        private void hideLocked() {
+            mUIHandler.post(mHideRunnable);
+        }
+
+        private void visualizeLocked() {
+            mUIHandler.post(mVisualizeRunnable);
+        }
+
         private void dismissLocked() {
             mUIHandler.removeCallbacks(mShowRunnable);
             mUIHandler.post(mDismissRunnable);
@@ -226,6 +246,28 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
                 }
             }
         }
+
+        private Runnable mVisualizeRunnable = new Runnable() {
+            @Override
+            public void run() {
+                OffScreenDisplayWindow window;
+                synchronized(getSyncRoot()) {
+                    window = mWindow;
+                    window.showOffScreenDisplay();
+                }
+            }
+        };
+
+        private final Runnable mHideRunnable = new Runnable() {
+            @Override
+            public void run() {
+                OffScreenDisplayWindow window;
+                synchronized(getSyncRoot()) {
+                    window = mWindow;
+                    window.hideOffScreenDisplay();
+                }
+            }
+        };
 
         private final Runnable mShowRunnable = new Runnable() {
             @Override

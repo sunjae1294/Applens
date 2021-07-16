@@ -794,11 +794,15 @@ public class DecorView extends FrameLayout implements RootViewSurfaceTaker, Wind
 
     /**@hide */
     private Context getActivity(Context context) {
-        Context c = ((ContextWrapper) context).getBaseContext();
-        if (c instanceof Activity) {
-            return c;
-        } else {
-            return getActivity(c);
+        if (context instanceof ContextWrapper) {
+            Context c = ((ContextWrapper) context).getBaseContext();
+            if (c instanceof Activity) {
+                return c;
+            } else {
+                return getActivity(c);
+            }
+        }else {
+            return null;
         }
     }
 

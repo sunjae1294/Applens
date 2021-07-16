@@ -672,6 +672,18 @@ public final class DisplayManager {
         mGlobal.hideUIDisplay();
     }
 
+    public void showUIDisplay() {
+        mGlobal.showUIDisplay();
+    }
+
+    public void hideOffScreenDisplay() {
+        mGlobal.hideOffScreenDisplay();
+    }
+
+    public void showOffScreenDisplay() {
+        mGlobal.showOffScreenDisplay();
+    }
+
     /** @hide */
     public void resizeUIDisplay(int width, int height, int id) {
         mGlobal.resizeUIDisplay(width, height, id);

@@ -86,6 +86,9 @@ interface IDisplayManager {
     int createRightUIDisplay(int width, int height);
     
     void hideUIDisplay();
+    void showUIDisplay();
+    void hideOffScreenDisplay();
+    void showOffScreenDisplay();
 
     void resizeUIDisplay(int widht, int height, int id);
 

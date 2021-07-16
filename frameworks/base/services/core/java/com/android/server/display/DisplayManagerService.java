@@ -2019,10 +2019,21 @@ public final class DisplayManagerService extends SystemService {
             mUIDisplayAdapter.resizeUIDisplay(width, height, id);
         }
 
-        /** @hide */
         public void hideUIDisplay() {
             mUIDisplayAdapter.hideUIDisplay();
-        } 
+        }
+
+        public void showUIDisplay() {
+            mUIDisplayAdapter.showUIDisplay();
+        }
+        
+        public void hideOffScreenDisplay() {
+            mOffScreenDisplayAdapter.hideOffScreenDisplay();
+        }
+
+        public void showOffScreenDisplay() {
+            mOffScreenDisplayAdapter.showOffScreenDisplay();
+        }
         /**Applens: end */
 
         @Override // Binder call

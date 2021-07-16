@@ -30,7 +30,7 @@ final class OffScreenDisplayWindow {
     private final float INITIAL_SCALE = 0.3f;
     private final float MIN_SCALE = 0.3f;
     private final float MAX_SCALE = 1.0f;
-    private final float WINDOW_ALPHA = 0.5f;
+    private float WINDOW_ALPHA = 0.5f;
     // When true, disables support for moving and resizing the overlay.
     // The window is made non-touchable, which makes it possible to
     // directly interact with the content underneath.
@@ -198,6 +198,20 @@ final class OffScreenDisplayWindow {
         mLiveTranslationX = 0f;
         mLiveTranslationY = 0f;
         mLiveScale = 1.0f;
+    }
+
+
+    public void hideOffScreenDisplay() {
+        WINDOW_ALPHA = 0.0f;
+        mWindowParams.alpha = WINDOW_ALPHA;
+
+        relayout();
+    }
+
+    public void showOffScreenDisplay() {
+        WINDOW_ALPHA = 0.5f;
+        mWindowParams.alpha = WINDOW_ALPHA;
+        relayout();
     }
 
     private final DisplayManager.DisplayListener mDisplayListener =

@@ -186,7 +186,7 @@ final class UIDisplayWindow {
         }
 
         mWindowParams.privateFlags |= WindowManager.LayoutParams.PRIVATE_FLAG_FORCE_HARDWARE_ACCELERATED;
-//        mWindowParams.alpha = WINDOW_ALPHA;
+        mWindowParams.alpha = WINDOW_ALPHA;
         mWindowParams.gravity = Gravity.TOP | Gravity.LEFT;
 
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
@@ -204,6 +204,7 @@ final class UIDisplayWindow {
     }
 
     public void hideUIDisplay() {
+        Slog.w("sunjae", "hide ui displays");
         WINDOW_ALPHA = 0.0f;
         mWindowParams.alpha = WINDOW_ALPHA;
         mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
