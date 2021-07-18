@@ -24,6 +24,7 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
     private static final String UNIQUE_ID_PREFIX = "OffScreen:";
 
     private final Handler mUIHandler;
+    private boolean mDefaultVisible = false;
     private Context mContext;
     private int numApp = -1;
     private final ArrayList<OffScreenDisplayHandle> mOffScreens = 
@@ -39,6 +40,10 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
     @Override
     public void registerLocked() {
         super.registerLocked();
+    }
+
+    public void setDefaultVisibility(boolean visible) {
+        mDefaultVisible = visible;
     }
 
     public int createOffScreenDisplay() {
@@ -264,7 +269,12 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
                 OffScreenDisplayWindow window;
                 synchronized(getSyncRoot()) {
                     window = mWindow;
-                    window.hideOffScreenDisplay();
+                    try {
+                        window.hideOffScreenDisplay();
+                    } catch (NullPointerException e) {
+                        Slog.w("LENS", "OffScreen not created yet!");
+                        e.printStackTrace();
+                    }
                 }
             }
         };
@@ -274,7 +284,7 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
             public void run() {
                 OffScreenMode mode = mMode;
                 OffScreenDisplayWindow window = new OffScreenDisplayWindow(getContext(), mName, mode.mWidth, mode.mHeight,
-                        mode.mDensityDpi,false, OffScreenDisplayHandle.this);
+                        mode.mDensityDpi, mDefaultVisible, false, OffScreenDisplayHandle.this);
                 window.show();
 
                 synchronized (getSyncRoot()) {

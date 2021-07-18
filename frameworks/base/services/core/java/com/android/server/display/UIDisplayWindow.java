@@ -74,7 +74,7 @@ final class UIDisplayWindow {
     private boolean mIsRight;
 
     public UIDisplayWindow(Context context, String name,
-            int width, int height, int densityDpi, boolean secure, boolean isRight,
+            int width, int height, int densityDpi, boolean visible,boolean secure, boolean isRight,
             Listener listener) {
         ThreadedRenderer.disableVsync();
         mContext = context;
@@ -85,6 +85,11 @@ final class UIDisplayWindow {
         mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         mInputManager = (InputManager) context.getSystemService(Context.INPUT_SERVICE);
+        if (visible) {
+            WINDOW_ALPHA = 1.0f;
+        } else {
+            WINDOW_ALPHA = 0.0f;
+        }
 
         mDefaultDisplay = mWindowManager.getDefaultDisplay();
         updateDefaultDisplayInfo();

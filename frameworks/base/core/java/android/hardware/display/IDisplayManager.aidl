@@ -75,13 +75,18 @@ interface IDisplayManager {
             in IMediaProjection projectionToken, String packageName, String name,
             int width, int height, int densityDpi, in Surface surface, int flags, String uniqueId);
     //applens
+
+    void setUIDisplayVisible(boolean visibile);
+
+    void setOffScreenDisplayVisible(boolean visibile);
+
     int createOffScreenDisplay();
 
     void dismissUIDisplay();
 
     int createUIDisplay(int width, int height);
 
-    void relayoutUIDisplay(float left, float right, float bottom, float top, float scale, int id);
+    void relayoutUIDisplay(in float[] args, int id);
 
     int createRightUIDisplay(int width, int height);
     

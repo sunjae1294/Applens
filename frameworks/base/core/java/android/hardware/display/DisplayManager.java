@@ -655,6 +655,14 @@ public final class DisplayManager {
         return mGlobal.createUIDisplay(width, height);
     }
 
+    public void setUIDisplayVisible(boolean visible) {
+        mGlobal.setUIDisplayVisible(visible);
+    }
+
+    public void setOffScreenDisplayVisible(boolean visible) {
+        mGlobal.setOffScreenDisplayVisible(visible);
+    }
+
     public void dismissUIDisplay() {
         mGlobal.dismissUIDisplay();
     }
@@ -664,8 +672,8 @@ public final class DisplayManager {
         return mGlobal.createRightUIDisplay(width, height);
     }
 
-    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale, int id) {
-         mGlobal.relayoutUIDisplay(left, right, bottom, top ,scale, id);
+    public void relayoutUIDisplay(float[] args, int id) {
+         mGlobal.relayoutUIDisplay(args, id);
     }
 
     public void hideUIDisplay() {

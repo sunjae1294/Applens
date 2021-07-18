@@ -2006,8 +2006,24 @@ public final class DisplayManagerService extends SystemService {
             return mUIDisplayAdapter.createRightUIDisplay(width, height);
         }
 
-        public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale, int id){
-            mUIDisplayAdapter.relayoutUIDisplay(left,right,bottom, top, scale, id);            
+        public void setUIDisplayVisible(boolean visible) {
+            mUIDisplayAdapter.setDefaultVisibility(visible);
+        }
+
+        public void setOffScreenDisplayVisible(boolean visible) {
+            mOffScreenDisplayAdapter.setDefaultVisibility(visible);
+        }
+
+        public void relayoutUIDisplay(float[] args, int id){
+            
+            int size = args.length/5;
+            List<float[]> listArgs = new ArrayList<float[]>();
+            for (int i = 0; i < size; i++) {
+                int start = i*5;
+                float[] arg = new float[]{args[start], args[start+1], args[start+2], args[start+3], args[start+4]};
+                listArgs.add(arg);
+            }
+            mUIDisplayAdapter.relayoutUIDisplay(listArgs, id);            
         }
 
         /** @hide */

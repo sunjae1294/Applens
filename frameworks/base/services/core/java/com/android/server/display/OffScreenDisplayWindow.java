@@ -30,7 +30,7 @@ final class OffScreenDisplayWindow {
     private final float INITIAL_SCALE = 0.3f;
     private final float MIN_SCALE = 0.3f;
     private final float MAX_SCALE = 1.0f;
-    private float WINDOW_ALPHA = 0.5f;
+    private float WINDOW_ALPHA = 0.0f;
     // When true, disables support for moving and resizing the overlay.
     // The window is made non-touchable, which makes it possible to
     // directly interact with the content underneath.
@@ -67,7 +67,7 @@ final class OffScreenDisplayWindow {
     private float mLiveScale = 1.0f;
 
     public OffScreenDisplayWindow(Context context, String name,
-            int width, int height, int densityDpi, boolean secure,
+            int width, int height, int densityDpi, boolean visible, boolean secure,
             Listener listener) {
         ThreadedRenderer.disableVsync();
         mContext = context;
@@ -77,6 +77,12 @@ final class OffScreenDisplayWindow {
 
         mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+
+        if (visible) {
+            WINDOW_ALPHA = 1.0f; 
+        } else {
+            WINDOW_ALPHA = 0.0f;
+        }
 
         mDefaultDisplay = mWindowManager.getDefaultDisplay();
         updateDefaultDisplayInfo();

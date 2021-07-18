@@ -27,6 +27,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
     private static final String UNIQUE_ID_PREFIX = "UIDisplay";
 
     private final Handler mUIHandler;
+    private static boolean mDefaultVisible = false;
     private Context mContext;
     private int numUi = -1;
     private final SparseArray<UIDisplayHandle> mUIDisps = 
@@ -42,6 +43,10 @@ final class UIDisplayAdapter extends DisplayAdapter {
     @Override
     public void registerLocked() {
         super.registerLocked();
+    }
+
+    public void setDefaultVisibility(boolean visible) {
+        mDefaultVisible = visible;
     }
 
     public int createUIDisplay(int width, int height) {
@@ -150,14 +155,28 @@ final class UIDisplayAdapter extends DisplayAdapter {
     }
 
     public int getUIDisplayCount() {
-        int size = (mUIDisps.size() /2);
+        // for right display
+        //int size = (mUIDisps.size() /2);
+        int size = mUIDisps.size();
         return size;
     }
 
-    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale, int id) {
+    public void relayoutUIDisplay(List<float[]> args, int id) {
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        int size =( mUIDisps.size());
-        for (int i = 0; i < size; i++) {
+        int dispSize =( mUIDisps.size());
+        int argSize = args.size();
+        if (dispSize != argSize) {
+//            Slog.w("LENS", "#"+dispSize+" display, #"+argSize+" args not matching");
+            return;
+        }
+        for (int i = 0; i < dispSize; i++) {
+            float[] arg = args.get(i);
+            float left = arg[0];
+            float right = arg[1];
+            float top = arg[2];
+            float bottom = arg[3];
+            float scale = arg[4];
+
             mUIDisps.get(i).relayoutLocked(left, right, bottom, top, scale, id);
             if (mUIDisps.indexOfKey(i+4) >= 0) {
                 mUIDisps.get((i) + 4).relayoutLocked(left+(int)(metrics.widthPixels/2), 
@@ -329,6 +348,9 @@ final class UIDisplayAdapter extends DisplayAdapter {
         private void relayoutLocked(float left, float right, float bottom, float top, float scale, int id) {
             switch (id) {
                 case 0:
+                    mX = left;
+                    mY = top;
+                    mScale = scale;
                     break;
                 case 1:
                     mX = left;
@@ -434,7 +456,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
             public void run() {
                 UIMode mode = mMode;
                 UIDisplayWindow window = new UIDisplayWindow(getContext(), mName, mode.mWidth, mode.mHeight,
-                        mode.mDensityDpi,false, mIsRight, UIDisplayHandle.this);
+                        mode.mDensityDpi, mDefaultVisible, false, mIsRight, UIDisplayHandle.this);
                 window.show();
 
                 synchronized (getSyncRoot()) {

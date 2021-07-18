@@ -458,6 +458,22 @@ public final class DisplayManagerGlobal {
         }
     }
 
+    public void setUIDisplayVisible(boolean visible) {
+        try {
+            mDm.setUIDisplayVisible(visible);
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
+
+    public void setOffScreenDisplayVisible(boolean visible) {
+        try {
+            mDm.setOffScreenDisplayVisible(visible);
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
     public void dismissUIDisplay() {
         try {
             mDm.dismissUIDisplay();
@@ -469,15 +485,16 @@ public final class DisplayManagerGlobal {
     /** @hide */
     public int createRightUIDisplay(int width, int height) {
         try {
+
             return mDm.createRightUIDisplay(width, height);
         } catch(RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
     }
 
-    public void relayoutUIDisplay(float left, float right, float bottom, float top, float scale, int id) {
+    public void relayoutUIDisplay(float[] args, int id) {
         try {
-            mDm.relayoutUIDisplay(left, right, bottom, top, scale,id);
+            mDm.relayoutUIDisplay(args,id);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }

@@ -2406,20 +2406,28 @@ public class Activity extends ContextThemeWrapper
         for (int i = 0; i < mAppLensManager.mNumDisplay; i++) {
             int width = displaySizes.get(i)[0];
             int height = displaySizes.get(i)[1];
+            int id = mDisplayManager.createUIDisplay(width,height);
+            try {
+                Thread.sleep(1000);
+            } catch(Exception e) {
+            
+            }
+            /* for reusing display
             if (i >= uiDisplayCount) {
-                Log.d("sunjae", "display not exist. creating");
+                Log.d("LENS", "display not exist. creating");
                 mDisplayManager.createUIDisplay(width,height);
                 try {
                     Thread.sleep(1000);
                 } catch(Exception e) {
                 }
             } else {
-                Log.d("sunjae", "display already exist. resizing to "+displaySizes.get(i)[0]+":"+displaySizes.get(i)[1]);
+                Log.d("LENS", "display already exist. resizing to "+displaySizes.get(i)[0]+":"+displaySizes.get(i)[1]);
                 mDisplayManager.resizeUIDisplay(width, height, i);
-            }
+            }*/
             Display[] presentationDisplays = mDisplayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
             for (Display display : presentationDisplays) {
-                if (display.getName().equals("UI #"+i)) {
+                if (display.getName().equals("UI #"+id)) {
+                    Log.d("LENS", "drawing on diaplsy"+i);
                     Presentation presentation = new UIDisplay(this,display,subtrees.get(i), width, height);
                     presentation.show();
                     if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
