@@ -30,7 +30,7 @@ final class OffScreenDisplayWindow {
     private final float INITIAL_SCALE = 0.3f;
     private final float MIN_SCALE = 0.3f;
     private final float MAX_SCALE = 1.0f;
-    private float WINDOW_ALPHA = 0.0f;
+    private float WINDOW_ALPHA = 1.0f;
     // When true, disables support for moving and resizing the overlay.
     // The window is made non-touchable, which makes it possible to
     // directly interact with the content underneath.
@@ -79,7 +79,7 @@ final class OffScreenDisplayWindow {
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 
         if (visible) {
-            WINDOW_ALPHA = 1.0f; 
+            WINDOW_ALPHA = 0.5f; 
         } else {
             WINDOW_ALPHA = 0.0f;
         }

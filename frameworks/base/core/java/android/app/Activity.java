@@ -783,6 +783,7 @@ public class Activity extends ContextThemeWrapper
     private boolean isMigrated = false;
     private int mDispId = 0;
     private String mLensString = null;
+    private boolean lensDone = false;
     /** applens: end */
     static final String FRAGMENTS_TAG = "android:fragments";
     private static final String LAST_AUTOFILL_ID = "android:lastAutofillId";
@@ -1872,7 +1873,6 @@ public class Activity extends ContextThemeWrapper
         Bundle extras = getIntent().getExtras();
         byte b = 0; 
         if (extras != null) {
-            Log.d(LENS_TAG, "intent null");
             b = extras.getByte("isMigrated");
             if (b > 0)
                 isMigrated = true;
@@ -1883,7 +1883,8 @@ public class Activity extends ContextThemeWrapper
         mDispId = disp.getDisplayId();
         //for test
 //        if (mDispId>=0) {
-        if (mDispId>0) {
+        if (mDispId>0  && !lensDone) {
+//            Log.d("LENS", "onPostResume!! = "+mComponent.getClassName());
             parseTouch(true, mWindow.getDecorView());
 
             Handler handler = new Handler(Looper.getMainLooper());
@@ -1893,6 +1894,8 @@ public class Activity extends ContextThemeWrapper
                     fetchSubtree(true, mWindow.getDecorView());
                 }
             }, 1000);
+
+            lensDone = true;
         }
 
         /** applens: end */
@@ -1917,7 +1920,7 @@ public class Activity extends ContextThemeWrapper
     /** @hide */
     public void fetchSubtree(boolean firstTime, View decorView) {
         mAppLensManager = AppLensManager.getInstance(this);
-
+        Log.d("LENS", "fetch Subtree = "+firstTime+" / " +mComponent.getClassName());
         if (extractSubtree(firstTime, decorView)) {
             
             mAppLensManager = AppLensManager.getInstance();
@@ -1965,6 +1968,11 @@ public class Activity extends ContextThemeWrapper
         boolean res;
         try {
             if (firstTime) {
+//                Log.d("LENS", "extract Subtree = "+firstTime+" / " +mComponent.getClassName());
+                // for ad
+                if (mComponent.getClassName().equals("com.google.android.play.core.common.PlayCoreDialogWrapperActivity")) {
+                    return false;
+                }
                 // for Youtube
                 if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
                     Log.d(LENS_TAG, "found youtube");
@@ -1972,6 +1980,7 @@ public class Activity extends ContextThemeWrapper
                     res = inflateYoutube(firstTime, decorView); 
                 } else {
                     File layoutFile = new File(getExternalFilesDir(null) + "/second_layout.xml");
+//                    Log.d("LENS", (getExternalFilesDir(null)).toString());
                     FileInputStream fis = new FileInputStream(layoutFile);
                     XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                     uiParser = factory.newPullParser();
@@ -1994,7 +2003,8 @@ public class Activity extends ContextThemeWrapper
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Log.d(LENS_TAG, "no second_layout file");		
+            Log.d(LENS_TAG, "no second_layout file" +" / " +mComponent.getClassName());	
+            return false;    
         }
         return true;
     }
@@ -2402,6 +2412,7 @@ public class Activity extends ContextThemeWrapper
     public void migrateUI() {
         ArrayList<ViewGroup> subtrees = mAppLensManager.getSubtrees();
         int uiDisplayCount = mDisplayManager.getUIDisplayCount();
+//        Log.d("LENS", "migrateUI!!"+" / " +mComponent.getClassName());
 
         for (int i = 0; i < mAppLensManager.mNumDisplay; i++) {
             int width = displaySizes.get(i)[0];

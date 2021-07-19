@@ -24,7 +24,7 @@ final class OffScreenDisplayAdapter extends DisplayAdapter {
     private static final String UNIQUE_ID_PREFIX = "OffScreen:";
 
     private final Handler mUIHandler;
-    private boolean mDefaultVisible = false;
+    private static boolean mDefaultVisible = false;
     private Context mContext;
     private int numApp = -1;
     private final ArrayList<OffScreenDisplayHandle> mOffScreens = 
