@@ -784,6 +784,7 @@ public class Activity extends ContextThemeWrapper
     private int mDispId = 0;
     private String mLensString = null;
     private boolean lensDone = false;
+    private int mNumDisplay = 0;
     /** applens: end */
     static final String FRAGMENTS_TAG = "android:fragments";
     private static final String LAST_AUTOFILL_ID = "android:lastAutofillId";
@@ -1885,12 +1886,12 @@ public class Activity extends ContextThemeWrapper
 //        if (mDispId>=0) {
         if (mDispId>0  && !lensDone) {
 //            Log.d("LENS", "onPostResume!! = "+mComponent.getClassName());
-            parseTouch(true, mWindow.getDecorView());
 
             Handler handler = new Handler(Looper.getMainLooper());
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
+                    parseTouch(true, mWindow.getDecorView());
                     fetchSubtree(true, mWindow.getDecorView());
                 }
             }, 1000);
@@ -2143,7 +2144,7 @@ public class Activity extends ContextThemeWrapper
         ViewGroup subtree;         
         if (firstTime) {
             //add display
-            mAppLensManager.mNumDisplay++;
+            mNumDisplay++;
             int width = 1440;
             int height = 126;
             int[] size = new int[]{width, height};
@@ -2226,7 +2227,7 @@ public class Activity extends ContextThemeWrapper
 
                         if (startParse) {
                             if (parser.getName().equals("display")) {
-                                mAppLensManager.mNumDisplay++;
+                                mNumDisplay++;
                                 FrameLayout subtree = new FrameLayout(this);
                                 subtrees.add((ViewGroup)subtree);
                                 
@@ -2412,9 +2413,9 @@ public class Activity extends ContextThemeWrapper
     public void migrateUI() {
         ArrayList<ViewGroup> subtrees = mAppLensManager.getSubtrees();
         int uiDisplayCount = mDisplayManager.getUIDisplayCount();
-//        Log.d("LENS", "migrateUI!!"+" / " +mComponent.getClassName());
-
-        for (int i = 0; i < mAppLensManager.mNumDisplay; i++) {
+        Log.d("LENS", "migrateUI!!"+" / " +mComponent.getClassName());
+        Log.d("LENS", "migrateUI numDisplay="+mNumDisplay);
+        for (int i = 0; i < mNumDisplay; i++) {
             int width = displaySizes.get(i)[0];
             int height = displaySizes.get(i)[1];
             int id = mDisplayManager.createUIDisplay(width,height);
