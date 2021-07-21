@@ -13970,6 +13970,14 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * @param event The motion event to be dispatched.
      * @return True if the event was handled by the view, false otherwise.
      */
+
+    /** applens: start */
+    /**@hide */
+    public boolean isOffScreen() {
+       //sunjae 
+       return ((Activity)mContext).isOffScreen();
+    }
+    /** applens: end */
     public boolean dispatchTouchEvent(MotionEvent event) {
 
         /** applens: start */

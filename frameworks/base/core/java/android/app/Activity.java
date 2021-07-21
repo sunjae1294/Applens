@@ -1909,6 +1909,13 @@ public class Activity extends ContextThemeWrapper
     private boolean macroUpdate = false;
 
     /** @hide */
+    public boolean isOffScreen() {
+        if(mDispId > 0)
+           return true;
+        else
+           return false; 
+    }
+    /** @hide */
     public boolean getWatchUpdate() {
         return watchUpdate;
     }
@@ -1969,7 +1976,7 @@ public class Activity extends ContextThemeWrapper
         boolean res;
         try {
             if (firstTime) {
-//                Log.d("LENS", "extract Subtree = "+firstTime+" / " +mComponent.getClassName());
+                Log.d("LENS", "extract Subtree = "+firstTime+" / " +mComponent.getClassName());
                 // for ad
                 if (mComponent.getClassName().equals("com.google.android.play.core.common.PlayCoreDialogWrapperActivity")) {
                     return false;
@@ -2074,7 +2081,6 @@ public class Activity extends ContextThemeWrapper
                                 Log.d(LENS_TAG, "inject: "+text+" to "+view);
                             } else if (type.equals("touch")) {
                                 if (delay > 0) {
-                                    //isWaiting = true;
                                     Handler handler = new Handler(Looper.getMainLooper());
                                     handler.postDelayed(new Runnable() {
                                         @Override
@@ -2092,7 +2098,6 @@ public class Activity extends ContextThemeWrapper
                                 int x = Integer.parseInt( parser.getAttributeValue(null, "android:x"));
                                 int y = Integer.parseInt(parser.getAttributeValue(null, "android:y"));
                                 if (delay > 0) {
-                                    //isWaiting = true;
                                     Handler handler = new Handler(Looper.getMainLooper());
                                     handler.postDelayed(new Runnable() {
                                         @Override
@@ -2199,6 +2204,7 @@ public class Activity extends ContextThemeWrapper
         String activityName = "";
         ArrayList<ViewGroup> subtrees = mAppLensManager.getSubtrees();
         boolean startParse = !firstTime;
+        int parsedBlocks = 0;
         while (eventType != XmlPullParser.END_DOCUMENT) {
             if (!isWaiting) {
                 eventType = parser.getEventType();
@@ -2222,6 +2228,7 @@ public class Activity extends ContextThemeWrapper
                                 && parser.getAttributeValue(null, "android:name").equals(mComponent.getClassName())) {
                             activityName = parser.getAttributeValue(null, "android:name");
                             startParse = true;
+                            parsedBlocks++;
                         }
 
 
@@ -2287,7 +2294,10 @@ public class Activity extends ContextThemeWrapper
                 parser.next();
             }
         }
-        return true;
+        if (parsedBlocks >0)
+            return true;
+        else
+            return false;
     }
 
     private void setViewAttribute(XmlPullParser parser, View view) {
@@ -2439,7 +2449,7 @@ public class Activity extends ContextThemeWrapper
             Display[] presentationDisplays = mDisplayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
             for (Display display : presentationDisplays) {
                 if (display.getName().equals("UI #"+id)) {
-                    Log.d("LENS", "drawing on diaplsy"+i);
+                    Log.d("LENS", "drawing on diaplsy"+id);
                     Presentation presentation = new UIDisplay(this,display,subtrees.get(i), width, height);
                     presentation.show();
                     if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
