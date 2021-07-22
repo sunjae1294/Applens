@@ -2199,12 +2199,12 @@ public class Activity extends ContextThemeWrapper
         }
     }
 
+    int parsedBlocks = 0;
     private boolean inflate(XmlPullParser parser, boolean firstTime, View decorView) throws Exception {
         int eventType = parser.getEventType();
         String activityName = "";
         ArrayList<ViewGroup> subtrees = mAppLensManager.getSubtrees();
         boolean startParse = !firstTime;
-        int parsedBlocks = 0;
         while (eventType != XmlPullParser.END_DOCUMENT) {
             if (!isWaiting) {
                 eventType = parser.getEventType();
