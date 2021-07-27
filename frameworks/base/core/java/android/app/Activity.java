@@ -2451,7 +2451,7 @@ public class Activity extends ContextThemeWrapper
             Display[] presentationDisplays = mDisplayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
             for (Display display : presentationDisplays) {
                 if (display.getName().equals("UI #"+id)) {
-                    Log.d("LENS", "drawing on diaplsy"+id);
+                    Log.d("LENS", "drawing on UI #"+id);
                     Presentation presentation = new UIDisplay(this,display,subtrees.get(i), width, height);
                     presentation.show();
                     if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
@@ -2464,6 +2464,29 @@ public class Activity extends ContextThemeWrapper
                         InputManager mInputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
                         mInputManager.injectInputEvent(ev, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
 
+                    }
+
+                    if (mComponent.getClassName().equals("com.iloen.melon.MusicBrowserActivity")) {
+                        Handler handler = new Handler(Looper.getMainLooper());
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.d("hoyoung", "melontouch" + id);
+                                int metaState = 0;
+
+                                long downTime = SystemClock.uptimeMillis();
+                                long eventTime = SystemClock.uptimeMillis();
+                                MotionEvent ev = MotionEvent.obtain(downTime, eventTime, MotionEvent.ACTION_DOWN, 1200, 100, metaState);
+                                ev.setDisplayId(2);
+                                ((UIDisplay)presentation).handleMelon().dispatchTouchEvent(ev);
+
+                                long downTime2 = SystemClock.uptimeMillis();
+                                long eventTime2 = SystemClock.uptimeMillis();
+                                MotionEvent ev2 = MotionEvent.obtain(downTime2, eventTime2, MotionEvent.ACTION_UP, 1200, 100, metaState);
+                                ev2.setDisplayId(2);
+                                ((UIDisplay)presentation).handleMelon().dispatchTouchEvent(ev2);
+                            }
+                        }, 2000);
                     }
 //                    if (i >= uiDisplayCount)
 //                        mDisplayManager.createRightUIDisplay(width,height);

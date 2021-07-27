@@ -307,6 +307,7 @@ final class UIDisplayWindow {
             float newX = oldX / mWindowScale;
             float newY = oldY / mWindowScale;
             event.setLocation(newX, newY);
+            Slog.w("hoyoung", "newX = " + newX + "newY = " + newY + "mWindowScale = " + mWindowScale);
             ((InputEvent)event).setDisplayId(mDisplayId);
             mInputManager.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
             

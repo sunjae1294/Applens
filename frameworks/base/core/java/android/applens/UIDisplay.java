@@ -46,6 +46,10 @@ public class UIDisplay extends Presentation {
         this.mHeight = height;
     }
 
+    public ViewGroup handleMelon() {
+        return mContentView;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
