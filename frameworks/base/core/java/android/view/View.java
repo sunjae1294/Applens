@@ -13975,6 +13975,10 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     /**@hide */
     public boolean isOffScreen() {
        //sunjae 
+       if (mContext.getPackageName().equals("com.google.android.gms")) {
+           Log.e("hoyoung", "err handling");
+           return false;
+       }
        return ((Activity)mContext).isOffScreen();
     }
     /** applens: end */
