@@ -13983,6 +13983,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     }
     /** applens: end */
     public boolean dispatchTouchEvent(MotionEvent event) {
+        Log.d("sunjae", "touch on=" +this+". x="+event.getX()+ " y="+event.getY());
 
         /** applens: start */
         if (isMigrated) {

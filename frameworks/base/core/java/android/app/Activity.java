@@ -1870,7 +1870,7 @@ public class Activity extends ContextThemeWrapper
         if (mComponent.getClassName().equals("com.google.android.gms.ads.AdActivity")) {
             finish(); 
         }
-        /** appLens: start */
+        /** appLens: start */ //onPostResumeLens
         Bundle extras = getIntent().getExtras();
         byte b = 0; 
         if (extras != null) {
@@ -3458,8 +3458,11 @@ public class Activity extends ContextThemeWrapper
     }
 
     void dispatchMovedToDisplay(int displayId, Configuration config) {
+        Log.d("sunjae", "dispatchMovedToDisplay");
         updateDisplay(displayId);
         onMovedToDisplay(displayId, config);
+        /*applens: start */
+        moveTaskToBack(true);
     }
 
     /**

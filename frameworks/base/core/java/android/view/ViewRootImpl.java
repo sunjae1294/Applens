@@ -1374,6 +1374,7 @@ public final class ViewRootImpl implements ViewParent,
      * @hide
      */
     public void onMovedToDisplay(int displayId, Configuration config) {
+        Log.d("sunjae", "move to displayId="+displayId);
         if (mDisplay.getDisplayId() == displayId) {
             return;
         }
