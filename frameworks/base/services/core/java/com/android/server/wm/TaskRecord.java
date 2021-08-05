@@ -1039,6 +1039,12 @@ class TaskRecord extends ConfigurationContainer {
         return mStack != null ? mStack.mStackId : INVALID_STACK_ID;
     }
 
+    /** applens: start */
+    public void setLensBringToFront(boolean toFront) {
+       mStack.setLensBringToFront(toFront);
+    }
+    /** applens: end */
+
     @Override
     protected int getChildCount() {
         return mActivities.size();

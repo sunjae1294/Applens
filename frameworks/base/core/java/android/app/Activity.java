@@ -1907,7 +1907,6 @@ public class Activity extends ContextThemeWrapper
     private DisplayManager mDisplayManager;
     private boolean watchUpdate = false;
     private boolean macroUpdate = false;
-    private boolean mBringToFront = false;
 
     /** @hide */
     public boolean isOffScreen() {
@@ -2020,19 +2019,20 @@ public class Activity extends ContextThemeWrapper
 
     /** @hide */
     public boolean bringToFront() {
-        
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         if (mComponent.getClassName().equals("com.lotte.on.product.activity.ProductDetailActivity") ||
                 mComponent.getClassName().equals("com.coupang.mobile.domain.sdp.interstellar.view.NewSdpActivity") ||
                 mComponent.getClassName().equals("com.starbucks.co2.ui.order.store.SirenOrderStoreSearchActivity") ||
                 mComponent.getClassName().equals("com.ediya.coupon.view.order.OrderStoreActivity")) {
             Log.d("LENS", "target Activity");
 
-           mBringToFront = true;
+            activityManager.lensBringToFront(getTaskId(), true);
            mDisplayManager.dismissUIDisplay();
            return true;
         } else {
             Log.d("LENS", "not target Activity");
-            mBringToFront = false;
+
+            activityManager.lensBringToFront(getTaskId(), false);
             return false;
         }
     }
@@ -3465,14 +3465,6 @@ public class Activity extends ContextThemeWrapper
         Log.d("sunjae", "dispatchMovedToDisplay");
         updateDisplay(displayId);
         onMovedToDisplay(displayId, config);
-        /*applens: start */
-        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        try {
-            if (mBringToFront) 
-                activityManager.moveTaskToFront(getTaskId(),0);
-        } catch (Exception e) {
-            Log.d("sunjae", "error moving task="+this);
-        }
     }
 
     /**

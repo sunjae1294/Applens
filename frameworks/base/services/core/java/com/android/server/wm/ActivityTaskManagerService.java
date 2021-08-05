@@ -2353,8 +2353,7 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
     @Override
     public void moveTaskToFront(IApplicationThread appThread, String callingPackage, int taskId,
             int flags, Bundle bOptions) {
-        //applens: start */
-//        mAmInternal.enforceCallingPermission(android.Manifest.permission.REORDER_TASKS, "moveTaskToFront()");
+        mAmInternal.enforceCallingPermission(android.Manifest.permission.REORDER_TASKS, "moveTaskToFront()");
 
         if (DEBUG_STACK) Slog.d(TAG_STACK, "moveTaskToFront: moving taskId=" + taskId);
         synchronized (mGlobalLock) {
@@ -2362,6 +2361,26 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
                     SafeActivityOptions.fromBundle(bOptions), false /* fromRecents */);
         }
     }
+
+    /** applens: start */
+    @Override
+    public void lensBringToFront(IApplicationThread appThread, int taskId, boolean toFront) {
+        synchronized (mGlobalLock) {
+            lensBringToFrontLocked(appThread, taskId, toFront);
+        }
+    }
+
+    void lensBringToFrontLocked(@Nullable IApplicationThread appThread, int taskId, boolean toFront) {
+        final TaskRecord task = mRootActivityContainer.anyTaskForId(taskId);
+
+       if (task == null) {
+            Slog.w("LENS", "cannot find task for id: "+taskId);
+            return;
+       } 
+        task.setLensBringToFront(toFront);
+
+    }
+    /** applens: end */
 
     void moveTaskToFrontLocked(@Nullable IApplicationThread appThread,
             @Nullable String callingPackage, int taskId, int flags, SafeActivityOptions options,

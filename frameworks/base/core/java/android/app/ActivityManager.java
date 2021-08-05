@@ -2044,6 +2044,21 @@ public class ActivityManager {
         moveTaskToFront(taskId, flags, null);
     }
 
+    /** applens: start */
+    /** @hide */
+    public void lensBringToFront(int taskId, boolean toFront) {
+        try{
+            ActivityThread thread = ActivityThread.currentActivityThread();
+            IApplicationThread appThread = thread.getApplicationThread();
+            String packagename = mContext.getPackageName();
+            getTaskService().lensBringToFront(appThread, taskId, toFront);
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+    /** applens: end */
+
+
     /**
      * Ask that the task associated with a given task ID be moved to the
      * front of the stack, so it is now visible to the user.

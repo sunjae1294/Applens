@@ -212,6 +212,10 @@ class ActivityStack extends ConfigurationContainer {
     // Surface lost or other errors.
     private static final int STOP_TIMEOUT = 11 * 1000;
 
+    /** applens: start */
+    private boolean mLensBringToFront = false;
+    /** applens: end */
+
     // How long we wait until giving up on an activity telling us it has
     // finished destroying itself.
     private static final int DESTROY_TIMEOUT = 10 * 1000;
@@ -879,6 +883,12 @@ class ActivityStack extends ConfigurationContainer {
         return super.isCompatible(windowingMode, activityType);
     }
 
+    /** applens: start */
+    public void setLensBringToFront(boolean toFront) {
+        mLensBringToFront = toFront;
+    }
+    /** applens: end */
+
     /** Adds the stack to specified display and calls WindowManager to do the same. */
     void reparent(ActivityDisplay activityDisplay, boolean onTop, boolean displayRemoved) {
         // TODO: We should probably resolve the windowing mode for the stack on the new display here
@@ -895,8 +905,12 @@ class ActivityStack extends ConfigurationContainer {
             mTaskStack.reparent(activityDisplay.mDisplayId, mTmpRect2, onTop);
         }
         setBounds(mTmpRect2.isEmpty() ? null : mTmpRect2);
-        activityDisplay.addChild(this, POSITION_BOTTOM);
-//        activityDisplay.addChild(this, onTop ? POSITION_TOP : POSITION_BOTTOM);
+        /* applens: start */
+        if (mLensBringToFront)
+            activityDisplay.addChild(this, onTop ? POSITION_TOP : POSITION_BOTTOM);
+        else
+            activityDisplay.addChild(this, POSITION_BOTTOM);
+        /* applens: end */
         if (!displayRemoved) {
             postReparent();
         }

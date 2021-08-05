@@ -152,6 +152,8 @@ interface IActivityTaskManager {
             in Intent resultData);
     void moveTaskToFront(in IApplicationThread app, in String callingPackage, int task,
             int flags, in Bundle options);
+    /** @hide */
+    void lensBringToFront(in IApplicationThread app, int task, boolean toFront);
     int getTaskForActivity(in IBinder token, in boolean onlyRoot);
     void finishSubActivity(in IBinder token, in String resultWho, int requestCode);
     ParceledListSlice getRecentTasks(int maxNum, int flags, int userId);
