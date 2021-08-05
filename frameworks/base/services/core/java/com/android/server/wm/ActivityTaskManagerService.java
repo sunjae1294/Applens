@@ -2353,7 +2353,8 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
     @Override
     public void moveTaskToFront(IApplicationThread appThread, String callingPackage, int taskId,
             int flags, Bundle bOptions) {
-        mAmInternal.enforceCallingPermission(android.Manifest.permission.REORDER_TASKS, "moveTaskToFront()");
+        //applens: start */
+//        mAmInternal.enforceCallingPermission(android.Manifest.permission.REORDER_TASKS, "moveTaskToFront()");
 
         if (DEBUG_STACK) Slog.d(TAG_STACK, "moveTaskToFront: moving taskId=" + taskId);
         synchronized (mGlobalLock) {

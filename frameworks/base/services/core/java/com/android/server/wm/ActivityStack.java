@@ -884,6 +884,7 @@ class ActivityStack extends ConfigurationContainer {
         // TODO: We should probably resolve the windowing mode for the stack on the new display here
         // so that it end up in a compatible mode in the new display. e.g. split-screen secondary.
         removeFromDisplay();
+        Slog.w("sunjae", "reparent stack!");
         // Reparent the window container before we try to update the position when adding it to
         // the new display below
         mTmpRect2.setEmpty();
@@ -894,7 +895,8 @@ class ActivityStack extends ConfigurationContainer {
             mTaskStack.reparent(activityDisplay.mDisplayId, mTmpRect2, onTop);
         }
         setBounds(mTmpRect2.isEmpty() ? null : mTmpRect2);
-        activityDisplay.addChild(this, onTop ? POSITION_TOP : POSITION_BOTTOM);
+        activityDisplay.addChild(this, POSITION_BOTTOM);
+//        activityDisplay.addChild(this, onTop ? POSITION_TOP : POSITION_BOTTOM);
         if (!displayRemoved) {
             postReparent();
         }
