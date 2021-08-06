@@ -894,7 +894,7 @@ class ActivityStack extends ConfigurationContainer {
         // TODO: We should probably resolve the windowing mode for the stack on the new display here
         // so that it end up in a compatible mode in the new display. e.g. split-screen secondary.
         removeFromDisplay();
-        Slog.w("sunjae", "reparent stack!");
+        Slog.w("LENS", "reparent stack!");
         // Reparent the window container before we try to update the position when adding it to
         // the new display below
         mTmpRect2.setEmpty();
@@ -906,10 +906,19 @@ class ActivityStack extends ConfigurationContainer {
         }
         setBounds(mTmpRect2.isEmpty() ? null : mTmpRect2);
         /* applens: start */
-        if (mLensBringToFront)
+        if (mLensBringToFront) {
             activityDisplay.addChild(this, onTop ? POSITION_TOP : POSITION_BOTTOM);
-        else
+        }
+        else {
+            /** end activity
+            for (int taskNdx = mTaskHistory.size() - 1; taskNdx >= 0; --taskNdx) {
+                Slog.w("sunjae", "remove taskid: "+taskNdx);
+                final TaskRecord task = mTaskHistory.get(taskNdx);
+               removeTask(task, "lens", REMOVE_TASK_MODE_DESTROYING);
+            } */
+
             activityDisplay.addChild(this, POSITION_BOTTOM);
+        }
         /* applens: end */
         if (!displayRemoved) {
             postReparent();

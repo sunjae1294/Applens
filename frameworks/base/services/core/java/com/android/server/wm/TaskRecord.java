@@ -1041,7 +1041,7 @@ class TaskRecord extends ConfigurationContainer {
 
     /** applens: start */
     public void setLensBringToFront(boolean toFront) {
-       mStack.setLensBringToFront(toFront);
+        mStack.setLensBringToFront(toFront);
     }
     /** applens: end */
 

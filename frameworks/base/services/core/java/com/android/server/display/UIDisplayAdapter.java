@@ -318,6 +318,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
         private float mX;
         private float mY;
         private float mScale;
+        private float mScaleY = 0;
         private boolean mIsRight;
 
 
@@ -493,8 +494,12 @@ final class UIDisplayAdapter extends DisplayAdapter {
                 UIDisplayWindow window;
                 synchronized (getSyncRoot()){
                     window = mWindow;
-                    if (mWindow != null)
-                        window.relayoutUIDisplay(mX, mY, mScale);
+                    if (mWindow != null) {
+                        if (mScaleY>0)
+                            window.relayoutUIDisplay(mX,mY, mScale, mScaleY);
+                        else
+                            window.relayoutUIDisplay(mX, mY, mScale);
+                    }
                 }
             }
         };

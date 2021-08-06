@@ -13983,13 +13983,15 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     }
     /** applens: end */
     public boolean dispatchTouchEvent(MotionEvent event) {
-        Log.d("sunjae", "touch on=" +this+". x="+event.getX()+ " y="+event.getY());
+        Log.d("LENS", "touch on=" +this+". x="+event.getX()+ " y="+event.getY());
 
         /** applens: start */
         if (isMigrated) {
-            boolean res =  ((Activity)mContext).bringToFront();
-            if (res)
-                return true;
+            if (mContext instanceof Activity) {
+                boolean res =  ((Activity)mContext).bringToFront();
+                if (res)
+                    return true;
+            }
         } else {
         }
             /** applens: end */

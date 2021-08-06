@@ -1862,7 +1862,7 @@ public class Activity extends ContextThemeWrapper
         final Window win = getWindow();
         if (win != null) win.makeActive();
 
-        Log.d("hoyoung", "activity name="+mComponent.getClassName());
+        Log.d("LENS", "postResume. activity name="+mComponent.getClassName());
         if (mActionBar != null) mActionBar.setShowHideAnimationEnabled(true);
         mCalled = true;
         mDisplayManager = (DisplayManager) this.getSystemService(Context.DISPLAY_SERVICE);
@@ -1884,9 +1884,9 @@ public class Activity extends ContextThemeWrapper
         mDispId = disp.getDisplayId();
         //for test
 //        if (mDispId>=0) {
-        if (mDispId>0  && !lensDone) {
+        if (mDispId>0 && !lensDone) {
 //            Log.d("LENS", "onPostResume!! = "+mComponent.getClassName());
-
+//
             Handler handler = new Handler(Looper.getMainLooper());
             handler.postDelayed(new Runnable() {
                 @Override
@@ -2017,6 +2017,7 @@ public class Activity extends ContextThemeWrapper
         return true;
     }
 
+    private boolean mBringToFront = false;
     /** @hide */
     public boolean bringToFront() {
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -2025,12 +2026,14 @@ public class Activity extends ContextThemeWrapper
                 mComponent.getClassName().equals("com.starbucks.co2.ui.order.store.SirenOrderStoreSearchActivity") ||
                 mComponent.getClassName().equals("com.ediya.coupon.view.order.OrderStoreActivity")) {
             Log.d("LENS", "target Activity");
+            mBringToFront = true;
 
             activityManager.lensBringToFront(getTaskId(), true);
            mDisplayManager.dismissUIDisplay();
            return true;
         } else {
             Log.d("LENS", "not target Activity");
+            mBringToFront = false;
 
             activityManager.lensBringToFront(getTaskId(), false);
             return false;
@@ -2157,7 +2160,7 @@ public class Activity extends ContextThemeWrapper
             //add display
             mNumDisplay++;
             int width = 1440;
-            int height = 126;
+            int height = 196;
             int[] size = new int[]{width, height};
             displaySizes.add(size);
             FrameLayout newSubtree = new FrameLayout(this);
@@ -2189,16 +2192,23 @@ public class Activity extends ContextThemeWrapper
             View targetView = ((ViewGroup)parentView).getChildAt(6);
             for (int i = 0; i < childCount; i++) {
                 View view = ((ViewGroup)parentView).getChildAt(i);
-                Log.d(LENS_TAG, "children = "+view);
+//                Log.d(LENS_TAG, "children = "+view);
             }
-            Log.d(LENS_TAG,"6th child = "+targetView);
+//            Log.d(LENS_TAG,"6th child = "+targetView);
             ViewGroup orgParent = (ViewGroup)targetView.getParent();
             if (orgParent != null) {
                 orgParent.removeView(targetView);
                 targetView.mVirtualParent = orgParent;
             }
+
             ViewGroup.LayoutParams params = subtree.generateLayoutParams();
             ViewGroup.LayoutParams orgParams = targetView.getLayoutParams();
+
+            //enlarge seekbar
+            View seekBar = ((ViewGroup)targetView).getChildAt(0);
+            Log.d("LENS", "seekbar = "+seekBar);
+            seekBar.setScaleY(2.0f);
+
             targetView.clearPosition();
             subtree.addView(targetView, params);
             return true;
@@ -3462,7 +3472,15 @@ public class Activity extends ContextThemeWrapper
     }
 
     void dispatchMovedToDisplay(int displayId, Configuration config) {
-        Log.d("sunjae", "dispatchMovedToDisplay");
+        Log.d("LENS", "dispatchMovedToDisplay: id="+displayId);
+        /* applens: start */
+        if (displayId == 0) {
+            Log.d("LENS", "dispatchMoveToDisplay: "+this);
+            finishAndRemoveTask();
+            System.exit(0);
+            return;
+        }
+        /* applens: end */
         updateDisplay(displayId);
         onMovedToDisplay(displayId, config);
     }

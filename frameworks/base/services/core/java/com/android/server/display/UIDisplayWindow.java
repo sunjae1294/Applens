@@ -24,6 +24,7 @@ import android.view.TextureView.SurfaceTextureListener;
 import android.widget.TextView;
 import android.graphics.PixelFormat;
 import android.util.DisplayMetrics;
+import android.os.SystemClock;
 
 /**@hide*/
 final class UIDisplayWindow {
@@ -66,7 +67,8 @@ final class UIDisplayWindow {
     private boolean mWindowVisible;
     private int mWindowX;
     private int mWindowY;
-    private float mWindowScale;
+    private float mWindowScaleX;
+    private float mWindowScaleY;
 
     private float mLiveTranslationX;
     private float mLiveTranslationY;
@@ -197,11 +199,21 @@ final class UIDisplayWindow {
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
         mWindowX = mIsRight ? (int)(metrics.widthPixels/2) : 0;
         mWindowY = 0;
-        mWindowScale = INITIAL_SCALE;
+        mWindowScaleX = INITIAL_SCALE;
+        mWindowScaleY = INITIAL_SCALE;
+    }
+
+    public void relayoutUIDisplay(float x, float y, float scale, float scaleY) {
+        mWindowScaleY = scaleY;
+        mWindowScaleX = scale;
+        mWindowX = (int)x;
+        mWindowY = (int)y;
+        relayout();
     }
 
     public void relayoutUIDisplay(float x, float y, float scale) {
-        mWindowScale = scale;
+        mWindowScaleX = scale;
+        mWindowScaleY = scale;
         mWindowX = (int)x;
         mWindowY = (int)y;
         relayout();
@@ -226,10 +238,10 @@ final class UIDisplayWindow {
     private void updateWindowParams() {
         mTextureView.getLayoutParams().width = mWidth;
         mTextureView.getLayoutParams().height = mHeight;
-        mTextureView.setScaleX(mWindowScale);
-        mTextureView.setScaleY(mWindowScale);
-        int width = (int)(mWidth * mWindowScale);
-        int height = (int)(mHeight * mWindowScale);
+        mTextureView.setScaleX(mWindowScaleX);
+        mTextureView.setScaleY(mWindowScaleY);
+        int width = (int)(mWidth * mWindowScaleX);
+        int height = (int)(mHeight * mWindowScaleY);
         mWindowParams.x = mWindowX;
         mWindowParams.y = mWindowY;
         mWindowParams.width = width;
@@ -240,7 +252,8 @@ final class UIDisplayWindow {
     private void saveWindowParams() {
         mWindowX = mWindowParams.x;
         mWindowY = mWindowParams.y;
-        mWindowScale = mTextureView.getScaleX();
+        mWindowScaleX = mTextureView.getScaleX();
+        mWindowScaleY = mTextureView.getScaleY();
         clearLiveState();
     }
 
@@ -299,17 +312,33 @@ final class UIDisplayWindow {
         }
     };
 
+    private long lastTouchDown;
+
     private final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent event) {
             float oldX = event.getX();
             float oldY = event.getY();
-            float newX = oldX / mWindowScale;
-            float newY = oldY / mWindowScale;
-            event.setLocation(newX, newY);
-            Slog.w("hoyoung", "newX = " + newX + "newY = " + newY + "mWindowScale = " + mWindowScale);
-            ((InputEvent)event).setDisplayId(mDisplayId);
-            mInputManager.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+            float newX = oldX / mWindowScaleX;
+            float newY = oldY / mWindowScaleY;
+//            event.setLocation(newX, newY);
+            Slog.w("sunjae", "newX = " + newX + "newY = " + newY + "mWindowScale = " + mWindowScaleY + "displayID = "+mDisplayId);
+
+
+            long now = SystemClock.uptimeMillis();
+            int action = event.getAction();
+
+            if (action == MotionEvent.ACTION_DOWN) {
+                lastTouchDown = now;
+            } 
+            
+//            MotionEvent newEvent = MotionEvent.obtain(lastTouchDown, now, action, newX, newY,0);
+            MotionEvent newEvent = MotionEvent.obtainNoHistory(event);
+            newEvent.setLocation(newX, newY);            
+            ((InputEvent)newEvent).setDisplayId(mDisplayId);
+            mInputManager.injectInputEvent(newEvent, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+            
+//            mInputManager.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
             
             return true;
         }
