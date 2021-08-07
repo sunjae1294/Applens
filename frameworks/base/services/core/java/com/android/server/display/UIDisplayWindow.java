@@ -185,6 +185,8 @@ final class UIDisplayWindow {
                 | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
                 | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
               PixelFormat.TRANSLUCENT);
+        if (mIsLoading)
+            mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
 
         if (mSecure) {
             mWindowParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
@@ -328,7 +330,7 @@ final class UIDisplayWindow {
             float newX = oldX / mWindowScaleX;
             float newY = oldY / mWindowScaleY;
 //            event.setLocation(newX, newY);
-            Slog.w("sunjae", "newX = " + newX + "newY = " + newY + "mWindowScale = " + mWindowScaleY + "displayID = "+mDisplayId);
+            Slog.w("sunjae", "newX = " + newX + "newY = " + newY + "mWindowScale = " + mWindowScaleY + "action = " + event.getAction() + "displayID = "+mDisplayId);
 
 
             long now = SystemClock.uptimeMillis();

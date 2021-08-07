@@ -2028,7 +2028,7 @@ public class Activity extends ContextThemeWrapper
             Log.d("LENS", "target Activity");
             mBringToFront = true;
 
-            activityManager.lensBringToFront(getTaskId(), true);
+           activityManager.lensBringToFront(getTaskId(), true);
            mDisplayManager.dismissUIDisplay();
            return true;
         } else {
@@ -2441,16 +2441,6 @@ public class Activity extends ContextThemeWrapper
         int uiDisplayCount = mDisplayManager.getUIDisplayCount();
         Log.d("LENS", "migrateUI!!"+" / " +mComponent.getClassName());
         Log.d("LENS", "migrateUI numDisplay="+mNumDisplay);
-        /* Loading ... UI 
-        if (mNumDisplay > 0) {
-            int loadingDisplayId = mDisplayManager.createUIDisplay(500,500);
-            Display[] presentationDisplays = mDisplayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
-            for (Display display : presentationDisplays) {
-                if (display.getName().equals("UI #"+loadingDisplayId)) {
-                    Log.d("LENS", "loading on UI #"+loadingDisplayId);
-                    Presentation loadingPresentation = new LoadingDisplay(this, display);
-                    loadingPresentation.show();
-        }*/
 
         for (int i = 0; i < mNumDisplay; i++) {
             int width = displaySizes.get(i)[0];
@@ -3489,8 +3479,7 @@ public class Activity extends ContextThemeWrapper
     void dispatchMovedToDisplay(int displayId, Configuration config) {
         Log.d("LENS", "dispatchMovedToDisplay: id="+displayId);
         /* applens: start */
-        if (displayId == 0) {
-            Log.d("LENS", "dispatchMoveToDisplay: "+this);
+        if (displayId == 0 && !mBringToFront) {
             finishAndRemoveTask();
             System.exit(0);
             return;
