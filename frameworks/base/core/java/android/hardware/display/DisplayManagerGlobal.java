@@ -442,9 +442,9 @@ public final class DisplayManagerGlobal {
         }
     }
     /**applens: start */
-    public int createOffScreenDisplay() {
+    public int createOffScreenDisplay(int numApp) {
         try {
-            return mDm.createOffScreenDisplay();
+            return mDm.createOffScreenDisplay(numApp);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }

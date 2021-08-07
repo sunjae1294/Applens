@@ -80,7 +80,7 @@ interface IDisplayManager {
 
     void setOffScreenDisplayVisible(boolean visibile);
 
-    int createOffScreenDisplay();
+    int createOffScreenDisplay(int numApp);
 
     void dismissUIDisplay();
 

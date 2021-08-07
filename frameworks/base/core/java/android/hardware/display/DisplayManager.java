@@ -648,8 +648,8 @@ public final class DisplayManager {
     }
 
     /** applens: start */
-    public int createOffScreenDisplay() {
-        return mGlobal.createOffScreenDisplay();
+    public int createOffScreenDisplay(int numApp) {
+        return mGlobal.createOffScreenDisplay(numApp);
     }
     public int createUIDisplay(int width, int height) {
         return mGlobal.createUIDisplay(width, height);

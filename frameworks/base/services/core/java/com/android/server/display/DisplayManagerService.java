@@ -1988,7 +1988,11 @@ public final class DisplayManagerService extends SystemService {
         }
 
         /**Applens: start */
-        public int createOffScreenDisplay() {
+        private int mNumAppLaunched = 0;
+        private int mNumAppReady = 0;
+        boolean readyToSwitch = false;
+        public int createOffScreenDisplay(int numApp) {
+            mNumAppLaunched = numApp;
            return mOffScreenDisplayAdapter.createOffScreenDisplay();
         }
 
@@ -2005,6 +2009,8 @@ public final class DisplayManagerService extends SystemService {
         }
 
         public void dismissUIDisplay() {
+            mNumAppReady = 0;
+            readyToSwitch = false;
             mUIDisplayAdapter.dismissUIDisplay();
             mOffScreenDisplayAdapter.dismissOffScreenDisplay();
         }
@@ -2044,7 +2050,12 @@ public final class DisplayManagerService extends SystemService {
         }
 
         public void hideLoadingDisplay() {
-            mUIDisplayAdapter.hideLoadingDisplay(); 
+            mNumAppReady++;
+            if (mNumAppReady == mNumAppLaunched) {
+                readyToSwitch = true;
+            }
+            if (readyToSwitch)
+                mUIDisplayAdapter.hideLoadingDisplay(); 
         }
 
         public void hideUIDisplay() {
@@ -2056,7 +2067,8 @@ public final class DisplayManagerService extends SystemService {
         }
 
         public void showUIDisplay() {
-            mUIDisplayAdapter.showUIDisplay();
+            if (readyToSwitch)
+                mUIDisplayAdapter.showUIDisplay();
         }
         
         public void hideOffScreenDisplay() {

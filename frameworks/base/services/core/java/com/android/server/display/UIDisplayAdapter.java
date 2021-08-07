@@ -178,7 +178,8 @@ final class UIDisplayAdapter extends DisplayAdapter {
     }
 
     public void hideLoadingDisplay() {
-        mLoadingDisp.hideLocked();
+        if (mLoadingDisp != null)
+            mLoadingDisp.hideLocked();
     }
 
     public int getUIDisplayCount() {
@@ -229,7 +230,8 @@ final class UIDisplayAdapter extends DisplayAdapter {
     }
 
     public void showLoadingDisplay() {
-        mLoadingDisp.visualizeLocked();
+        if (mLoadingDisp != null)
+            mLoadingDisp.visualizeLocked();
     }
 
     public void dismissUIDisplay() {

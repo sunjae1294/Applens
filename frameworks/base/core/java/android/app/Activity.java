@@ -2510,9 +2510,17 @@ public class Activity extends ContextThemeWrapper
         }
 
         // hide loading Display
+
         mDisplayManager.hideLoadingDisplay();
         mDisplayManager.showUIDisplay();
-
+        /*
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+            }
+        }, 1000);
+*/
        /* 
         for (int i = 0; i < mAppLensManager.mNumDisplay; i++) {
             int displayId = mDisplayManager.createUIDisplay(displaySizes.get(i)[0],displaySizes.get(i)[1]);
