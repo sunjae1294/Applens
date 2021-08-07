@@ -2441,6 +2441,17 @@ public class Activity extends ContextThemeWrapper
         int uiDisplayCount = mDisplayManager.getUIDisplayCount();
         Log.d("LENS", "migrateUI!!"+" / " +mComponent.getClassName());
         Log.d("LENS", "migrateUI numDisplay="+mNumDisplay);
+        /* Loading ... UI 
+        if (mNumDisplay > 0) {
+            int loadingDisplayId = mDisplayManager.createUIDisplay(500,500);
+            Display[] presentationDisplays = mDisplayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
+            for (Display display : presentationDisplays) {
+                if (display.getName().equals("UI #"+loadingDisplayId)) {
+                    Log.d("LENS", "loading on UI #"+loadingDisplayId);
+                    Presentation loadingPresentation = new LoadingDisplay(this, display);
+                    loadingPresentation.show();
+        }*/
+
         for (int i = 0; i < mNumDisplay; i++) {
             int width = displaySizes.get(i)[0];
             int height = displaySizes.get(i)[1];
@@ -2507,6 +2518,10 @@ public class Activity extends ContextThemeWrapper
                 }
             }
         }
+
+        // hide loading Display
+        mDisplayManager.hideLoadingDisplay();
+        mDisplayManager.showUIDisplay();
 
        /* 
         for (int i = 0; i < mAppLensManager.mNumDisplay; i++) {

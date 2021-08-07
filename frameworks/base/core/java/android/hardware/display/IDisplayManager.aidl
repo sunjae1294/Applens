@@ -86,14 +86,25 @@ interface IDisplayManager {
 
     int createUIDisplay(int width, int height);
 
+    void createLoadingDisplay(int width, int height);
+
+    void dismissLoadingDisplay();
+
     void relayoutUIDisplay(in float[] args, int id);
 
     int createRightUIDisplay(int width, int height);
     
     void hideUIDisplay();
+
     void showUIDisplay();
+
     void hideOffScreenDisplay();
+
     void showOffScreenDisplay();
+
+    void hideLoadingDisplay();
+
+    void showLoadingDisplay();
 
     void resizeUIDisplay(int widht, int height, int id);
 

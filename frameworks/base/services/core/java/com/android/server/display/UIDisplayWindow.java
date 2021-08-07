@@ -74,9 +74,10 @@ final class UIDisplayWindow {
     private float mLiveTranslationY;
     private float mLiveScale = 1.0f;
     private boolean mIsRight;
+    private boolean mIsLoading;
 
     public UIDisplayWindow(Context context, String name,
-            int width, int height, int densityDpi, boolean visible,boolean secure, boolean isRight,
+            int width, int height, int densityDpi, boolean visible,boolean secure, boolean isRight, boolean isLoading,
             Listener listener) {
         ThreadedRenderer.disableVsync();
         mContext = context;
@@ -87,10 +88,10 @@ final class UIDisplayWindow {
         mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         mInputManager = (InputManager) context.getSystemService(Context.INPUT_SERVICE);
-        if (visible) {
-            WINDOW_ALPHA = 1.0f;
-        } else {
+        if (!visible || isLoading) {
             WINDOW_ALPHA = 0.0f;
+        } else {
+            WINDOW_ALPHA = 1.0f;
         }
 
         mDefaultDisplay = mWindowManager.getDefaultDisplay();
@@ -98,6 +99,7 @@ final class UIDisplayWindow {
 
         resize(width, height, densityDpi, false /* doLayout */);
         mIsRight = isRight;
+        mIsLoading = isLoading;
         createWindow();
     }
 
@@ -187,8 +189,7 @@ final class UIDisplayWindow {
         if (mSecure) {
             mWindowParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
         }
-        if (mIsRight) {
-
+        if (mIsRight || mIsLoading) {
             mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
         }
 
@@ -197,8 +198,13 @@ final class UIDisplayWindow {
         mWindowParams.gravity = Gravity.TOP | Gravity.LEFT;
 
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        mWindowX = mIsRight ? (int)(metrics.widthPixels/2) : 0;
-        mWindowY = 0;
+        if (mIsLoading) {
+            mWindowX = (int)(metrics.widthPixels/2) - (int)(mWidth/2);
+            mWindowY = (int)(metrics.heightPixels/2) - (int)(mHeight/2);
+        } else {
+            mWindowX = mIsRight ? (int)(metrics.widthPixels/2) : 0;
+            mWindowY = 0;
+        }
         mWindowScaleX = INITIAL_SCALE;
         mWindowScaleY = INITIAL_SCALE;
     }

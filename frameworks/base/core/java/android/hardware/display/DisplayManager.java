@@ -655,6 +655,10 @@ public final class DisplayManager {
         return mGlobal.createUIDisplay(width, height);
     }
 
+    public void createLoadingDisplay(int width, int height) {
+        mGlobal.createLoadingDisplay(width, height);
+    }
+
     public void setUIDisplayVisible(boolean visible) {
         mGlobal.setUIDisplayVisible(visible);
     }
@@ -665,6 +669,10 @@ public final class DisplayManager {
 
     public void dismissUIDisplay() {
         mGlobal.dismissUIDisplay();
+    }
+
+    public void dismissLoadingDisplay() {
+        mGlobal.dismissLoadingDisplay();
     }
 
     /** @hide */
@@ -680,8 +688,16 @@ public final class DisplayManager {
         mGlobal.hideUIDisplay();
     }
 
+    public void hideLoadingDisplay() {
+        mGlobal.hideLoadingDisplay();
+    }
+
     public void showUIDisplay() {
         mGlobal.showUIDisplay();
+    }
+
+    public void showLoadingDisplay() {
+        mGlobal.showLoadingDisplay();
     }
 
     public void hideOffScreenDisplay() {

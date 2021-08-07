@@ -33,6 +33,8 @@ final class UIDisplayAdapter extends DisplayAdapter {
     private final SparseArray<UIDisplayHandle> mUIDisps = 
         new SparseArray<UIDisplayHandle>();
 
+    private UIDisplayHandle mLoadingDisp;
+
     public UIDisplayAdapter(DisplayManagerService.SyncRoot syncRoot,
             Context context, Handler handler, Listener listener, Handler uiHandler) {
         super(syncRoot, context, handler, listener, TAG);
@@ -47,6 +49,11 @@ final class UIDisplayAdapter extends DisplayAdapter {
 
     public void setDefaultVisibility(boolean visible) {
         mDefaultVisible = visible;
+    }
+
+    public void createLoadingDisplay(int width, int height) {
+        updateLoadingDisplayDevices(width, height);
+        Slog.w(TAG, "createLoadingDisplay");
     }
 
     public int createUIDisplay(int width, int height) {
@@ -96,6 +103,22 @@ final class UIDisplayAdapter extends DisplayAdapter {
         }
     }
 */
+
+    private void updateLoadingDisplayDevices(int width, int height) {
+        synchronized(getSyncRoot()) {
+            updateLoadingDisplayDevicesLocked(width, height);
+        }
+    }
+
+    private void updateLoadingDisplayDevicesLocked(int width, int height) {
+        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+        int densityDpi = metrics.densityDpi;
+        UIMode mode = new UIMode(width, height, densityDpi);
+        String name = "UI Loading";
+
+        mLoadingDisp = new UIDisplayHandle(name, mode, -1);
+    }
+
     private void updateUIDisplayDevices(int width, int height) {
         synchronized(getSyncRoot()){
             updateUIDisplayDevicesLocked(width, height);
@@ -154,6 +177,10 @@ final class UIDisplayAdapter extends DisplayAdapter {
 
     }
 
+    public void hideLoadingDisplay() {
+        mLoadingDisp.hideLocked();
+    }
+
     public int getUIDisplayCount() {
         // for right display
         //int size = (mUIDisps.size() /2);
@@ -201,6 +228,10 @@ final class UIDisplayAdapter extends DisplayAdapter {
         }
     }
 
+    public void showLoadingDisplay() {
+        mLoadingDisp.visualizeLocked();
+    }
+
     public void dismissUIDisplay() {
         int size = mUIDisps.size();
         for (int i = 0; i < size; i++) {
@@ -210,6 +241,13 @@ final class UIDisplayAdapter extends DisplayAdapter {
         }
         mUIDisps.clear();   
        numUi = -1; 
+    }
+
+    public void dismissLoadingDisplay() {
+        if (mLoadingDisp != null) {
+            mLoadingDisp.dismissLocked();
+            mLoadingDisp = null;
+        }
     }
 
     private class UIDisplayDevice extends DisplayDevice {
@@ -320,13 +358,15 @@ final class UIDisplayAdapter extends DisplayAdapter {
         private float mScale;
         private float mScaleY = 0;
         private boolean mIsRight;
+        private boolean mIsLoading;
 
 
         public UIDisplayHandle(String name, UIMode mode, int number) {
             mName = name;
             mMode = mode;
             mNumber = number;
-            mIsRight = number < 4 ? false : true;
+            mIsRight = number > 3 ? false : true;
+            mIsLoading = number < 0 ? true : false;
 
             showLocked();
         }
@@ -347,45 +387,47 @@ final class UIDisplayAdapter extends DisplayAdapter {
         }
 
         private void relayoutLocked(float left, float right, float bottom, float top, float scale, int id) {
-            switch (id) {
-                case 0:
-                    mX = left;
-                    mY = top;
-                    mScale = scale;
-                    break;
-                case 1:
-                    mX = left;
-                    mY = top;
-                    mScale = scale;
-                    break;
-                case 2:
-                    switch (mNumber%4) {
-                        case 0:
-                            mX = left - 200;
-                            mY = top ;
-                            mScale = 0.3f;
-                            break;
-                        case 1:
-                            mX = left - 400;
-                            mY = top + 400;
-                            mScale = scale;
-                            break;
-                        case 2:
-                            mX = (right)+200;
-                            mY = top;
-                            mScale = 0.3f;
-                        case 3:
-                            mX = (right)+200;
-                            mY = top+400;
-                            mScale = scale;
-                    }
-                    break;
-                case 3:
-                    break;
-                case 4: 
-                    break;
+            if (!mIsLoading) {
+                switch (id) {
+                    case 0:
+                        mX = left;
+                        mY = top;
+                        mScale = scale;
+                        break;
+                    case 1:
+                        mX = left;
+                        mY = top;
+                        mScale = scale;
+                        break;
+                    case 2:
+                        switch (mNumber%4) {
+                            case 0:
+                                mX = left - 200;
+                                mY = top ;
+                                mScale = 0.3f;
+                                break;
+                            case 1:
+                                mX = left - 400;
+                                mY = top + 400;
+                                mScale = scale;
+                                break;
+                            case 2:
+                                mX = (right)+200;
+                                mY = top;
+                                mScale = 0.3f;
+                            case 3:
+                                mX = (right)+200;
+                                mY = top+400;
+                                mScale = scale;
+                        }
+                        break;
+                    case 3:
+                        break;
+                    case 4: 
+                        break;
+                }
+                mUIHandler.post(mRelayoutRunnable);
             }
-            mUIHandler.post(mRelayoutRunnable);
         }
 
         private void hideLocked() {
@@ -457,7 +499,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
             public void run() {
                 UIMode mode = mMode;
                 UIDisplayWindow window = new UIDisplayWindow(getContext(), mName, mode.mWidth, mode.mHeight,
-                        mode.mDensityDpi, mDefaultVisible, false, mIsRight, UIDisplayHandle.this);
+                        mode.mDensityDpi, mDefaultVisible, false, mIsRight, mIsLoading, UIDisplayHandle.this);
                 window.show();
 
                 synchronized (getSyncRoot()) {

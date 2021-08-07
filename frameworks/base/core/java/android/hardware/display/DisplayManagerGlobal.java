@@ -458,6 +458,15 @@ public final class DisplayManagerGlobal {
         }
     }
 
+
+    public void createLoadingDisplay(int width, int height) {
+        try {
+            mDm.createLoadingDisplay(width, height);
+        } catch(RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
     public void setUIDisplayVisible(boolean visible) {
         try {
             mDm.setUIDisplayVisible(visible);
@@ -482,6 +491,15 @@ public final class DisplayManagerGlobal {
         }
     }
 
+
+    public void dismissLoadingDisplay() {
+        try {
+            mDm.dismissLoadingDisplay();
+        } catch(RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
     /** @hide */
     public int createRightUIDisplay(int width, int height) {
         try {
@@ -499,6 +517,22 @@ public final class DisplayManagerGlobal {
             throw e.rethrowFromSystemServer();
         }
 
+    }
+
+    public void hideLoadingDisplay() {
+        try {
+            mDm.hideLoadingDisplay();
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
+    public void showLoadingDisplay() {
+        try {
+            mDm.showLoadingDisplay();
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
     }
 
     public void hideUIDisplay() {

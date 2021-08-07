@@ -1992,8 +1992,16 @@ public final class DisplayManagerService extends SystemService {
            return mOffScreenDisplayAdapter.createOffScreenDisplay();
         }
 
+        public void createLoadingDisplay(int width, int height) {
+            mUIDisplayAdapter.createLoadingDisplay(width, height);
+        }
+
         public int createUIDisplay(int width, int height) {
             return mUIDisplayAdapter.createUIDisplay(width, height);
+        }
+
+        public void dismissLoadingDisplay() {
+            mUIDisplayAdapter.dismissLoadingDisplay();
         }
 
         public void dismissUIDisplay() {
@@ -2035,8 +2043,16 @@ public final class DisplayManagerService extends SystemService {
             mUIDisplayAdapter.resizeUIDisplay(width, height, id);
         }
 
+        public void hideLoadingDisplay() {
+            mUIDisplayAdapter.hideLoadingDisplay(); 
+        }
+
         public void hideUIDisplay() {
             mUIDisplayAdapter.hideUIDisplay();
+        }
+
+        public void showLoadingDisplay() {
+            mUIDisplayAdapter.showLoadingDisplay();
         }
 
         public void showUIDisplay() {
