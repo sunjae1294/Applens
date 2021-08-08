@@ -2063,6 +2063,8 @@ public class Activity extends ContextThemeWrapper
                             int viewID = getResources().getIdentifier(id, "id", getPackageName());
                             final View tempView = decorView.findViewById(viewID);
 
+
+
                             if (tempView == null) {
                                 Log.d(LENS_TAG, id+" not found in "+decorView);
                                 decorView.setMacroUpdate(true);
@@ -2106,11 +2108,47 @@ public class Activity extends ContextThemeWrapper
                             } else if (type.equals("touchPointer")) {
                                 int x = Integer.parseInt( parser.getAttributeValue(null, "android:x"));
                                 int y = Integer.parseInt(parser.getAttributeValue(null, "android:y"));
-                                if (delay > 0) {
-                                    Handler handler = new Handler(Looper.getMainLooper());
-                                    handler.postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
+                                String targetId = parser.getAttributeValue(null, "android:targetView");
+                                if (targetId != null) {
+                                    Log.d("hoyoung", "macro targetView need");
+                                    int targetViewId = getResources().getIdentifier(targetId, "id", getPackageName());
+                                    final View targetView = decorView.findViewById(targetViewId);
+
+                                    if (targetView == null || !(targetView.getVisibility()==View.VISIBLE)) {
+                                        Log.d("hoyoung", "macro targetView not found");
+                                        decorView.setMacroUpdate(true);
+                                        macroUpdate = true;
+                                        return false;
+                                    }
+
+                                    Log.d("hoyoung", "macro targetView found");
+
+                                    tempView.dispatchTouchEvent(MotionEvent.obtain(
+                                                SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
+                                                MotionEvent.ACTION_DOWN,x, y, 0));
+
+                                    tempView.dispatchTouchEvent(MotionEvent.obtain(
+                                                SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
+                                                MotionEvent.ACTION_UP,x, y, 0));
+                                    Log.d(LENS_TAG, "inject touch to "+tempView+" on "+x+":"+y);
+                                } else {
+                                    if (delay > 0) {
+                                        Handler handler = new Handler(Looper.getMainLooper());
+                                        handler.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                tempView.dispatchTouchEvent(MotionEvent.obtain(
+                                                            SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
+                                                            MotionEvent.ACTION_DOWN,x, y, 0));
+
+                                                tempView.dispatchTouchEvent(MotionEvent.obtain(
+                                                            SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
+                                                            MotionEvent.ACTION_UP,x, y, 0));
+                                                Log.d(LENS_TAG, "inject touch to "+tempView+" on "+x+":"+y);
+                                                isWaiting = false;
+                                            }
+                                        }, (delay*1000));
+                                    } else {
                                             tempView.dispatchTouchEvent(MotionEvent.obtain(
                                                         SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
                                                         MotionEvent.ACTION_DOWN,x, y, 0));
@@ -2119,20 +2157,8 @@ public class Activity extends ContextThemeWrapper
                                                         SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
                                                         MotionEvent.ACTION_UP,x, y, 0));
                                             Log.d(LENS_TAG, "inject touch to "+tempView+" on "+x+":"+y);
-                                            isWaiting = false;
-                                        }
-                                    }, (delay*1000));
-                                } else {
-                                        tempView.dispatchTouchEvent(MotionEvent.obtain(
-                                                    SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
-                                                    MotionEvent.ACTION_DOWN,x, y, 0));
-
-                                        tempView.dispatchTouchEvent(MotionEvent.obtain(
-                                                    SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
-                                                    MotionEvent.ACTION_UP,x, y, 0));
-                                        Log.d(LENS_TAG, "inject touch to "+tempView+" on "+x+":"+y);
+                                    }
                                 }
-                                
 
                             }
 
