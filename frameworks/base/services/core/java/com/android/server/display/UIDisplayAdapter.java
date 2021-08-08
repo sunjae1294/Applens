@@ -111,12 +111,14 @@ final class UIDisplayAdapter extends DisplayAdapter {
     }
 
     private void updateLoadingDisplayDevicesLocked(int width, int height) {
-        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        int densityDpi = metrics.densityDpi;
-        UIMode mode = new UIMode(width, height, densityDpi);
-        String name = "UI Loading";
+        if (mLoadingDisp == null) {
+            DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
+            int densityDpi = metrics.densityDpi;
+            UIMode mode = new UIMode(width, height, densityDpi);
+            String name = "UI Loading";
 
-        mLoadingDisp = new UIDisplayHandle(name, mode, -1);
+            mLoadingDisp = new UIDisplayHandle(name, mode, -1);
+        }
     }
 
     private void updateUIDisplayDevices(int width, int height) {
