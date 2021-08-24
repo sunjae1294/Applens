@@ -163,5 +163,14 @@ public class DecorContext extends ContextThemeWrapper {
         return false;
     }
 
+    /**@hide */
+    public boolean triggerUISelection(MotionEvent ev) {
+        Context context = mActivityContext.get();
+        if (context instanceof Activity) {
+            return ((Activity)context).triggerUISelection(ev);
+        }
+        return false;
+    }
+
     /**applens: end */
 }

@@ -170,6 +170,7 @@ import com.android.internal.policy.DecorView;
 import android.app.Activity;
 import android.applens.AppLensManager;
 import android.widget.LinearLayout;
+import android.graphics.drawable.GradientDrawable;
 /* applens: end */
 
 /**
@@ -815,6 +816,25 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     private boolean watchUpdate = false;
     private boolean macroUpdate = false;
 
+    private LinearLayout mOverlayBound = null;
+
+    /** @hide */
+    public int mUISelected = 0;
+
+    /** @hide */
+    public static final int NOT_SELECTED = 0;
+
+    /** @hide */
+    public static final int SOLO_SELECTED = 1;
+
+    /** @hide */
+    public static final int GROUP_SELECTED = 2;
+
+    /** @hide */
+    public int mSelectedChildCount = 0;
+
+    /** @hide */
+    public int mSelectedDirectChildCount = 0;
 
     /** @hide */
     public ViewParent mVirtualParent = null;
@@ -13972,6 +13992,130 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      */
 
     /** applens: start */
+
+    private boolean isInTouchBound(MotionEvent event) {
+        float x = event.getX();
+        float y = event.getY();
+        if (x > getWidth() || y > getHeight()) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isFullScreen() {
+        Context context = getContext();
+        View decorView = ((Activity)getContext()).getWindow().getDecorView();
+        int flags = decorView.getSystemUiVisibility();
+        return ((flags & SYSTEM_UI_FLAG_FULLSCREEN) != 0);
+    }
+
+    /** @hide */
+    public void addOverlayBound() {
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                getWidth(),
+                getHeight(),
+                WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT);
+        params.gravity = Gravity.LEFT | Gravity.TOP;
+        int[] xy = new int[2];
+        getLocationInWindow(xy);
+        params.x = xy[0];
+
+        if (isFullScreen())
+            params.y = xy[1];
+        else
+            params.y = xy[1] - 70;
+
+        if (mOverlayBound == null) {
+            mOverlayBound = new LinearLayout(mContext);
+            GradientDrawable gd = new GradientDrawable();
+            gd.setStroke(20, 0xffff0000);
+            gd.setColor(0);
+            mOverlayBound.setBackground(gd);
+        }
+
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        wm.addView(mOverlayBound, params);
+    }
+
+    /** @hide */
+    public void removeOverlayBound() {
+        if (mOverlayBound != null) {
+            WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+            wm.removeView(mOverlayBound);
+            mOverlayBound = null;
+        }
+    }
+
+    /**@hide */
+    public void markSelectedUI(boolean needOverlay) {
+        Context context = getContext();
+        if (!(context instanceof Activity)) {
+            mUISelected = NOT_SELECTED;
+            return;
+        }
+
+        if (needOverlay)
+            addOverlayBound();
+
+        ViewGroup parent = (ViewGroup)getParent();
+        parent.mSelectedDirectChildCount++;
+        while (parent != null) {
+            parent.mSelectedChildCount++;
+            if (parent.getId() == android.R.id.content)
+                break;
+            parent = (ViewGroup)parent.getParent();
+        }
+    }
+
+    /** @hide */
+    public void unmarkSelectedUI() {
+        ViewGroup parent = (ViewGroup)getParent();
+        parent.mSelectedDirectChildCount--;
+        while (parent != null) {
+            parent.mSelectedChildCount--;
+            if (parent.getId() == android.R.id.content)
+                break;
+            parent = (ViewGroup)parent.getParent();
+        }
+    }
+
+    /**@hide */
+    public void markSelectedUIGroup() {
+        ViewGroup parent = (ViewGroup) getParent();
+        parent.addOverlayBound();
+        removeOverlayBound();
+        parent.mUISelected = SOLO_SELECTED;
+
+        int childCount = parent.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = parent.getChildAt(i);
+            if (child.mUISelected == SOLO_SELECTED)
+                child.removeOverlayBound();
+            else
+                child.markSelectedUI(false);
+            child.mUISelected = GROUP_SELECTED;
+        }
+
+    }
+    
+    /** @hide */
+    public void unmarkSelectedUIGroup() {
+        ViewGroup parent = (ViewGroup) getParent();
+        parent.removeOverlayBound();
+        parent.mUISelected = NOT_SELECTED;
+        mUISelected = NOT_SELECTED;
+        int childCount = parent.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = parent.getChildAt(i);
+            child.unmarkSelectedUI();
+            child.mUISelected = NOT_SELECTED;
+        }
+    }
+
     /**@hide */
     public boolean isOffScreen() {
        //sunjae 
@@ -13992,9 +14136,26 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                 if (res)
                     return true;
             }
-        } else {
+        } else if (Activity.mUISelectMode){
+            if (this instanceof ViewGroup)
+                return false;
+            if (event.getAction() == MotionEvent.ACTION_UP && isInTouchBound(event)) {
+                mUISelected++;
+                if (mUISelected > GROUP_SELECTED) {
+                    mUISelected = NOT_SELECTED;
+                    unmarkSelectedUIGroup();
+                }
+                if (mUISelected == SOLO_SELECTED)
+                    markSelectedUI(true);
+                else if (mUISelected == GROUP_SELECTED)
+                    markSelectedUIGroup();
+                else if (mUISelected == NOT_SELECTED)
+                    unmarkSelectedUIGroup();
+            }
+            return true;
         }
-            /** applens: end */
+        /** applens: end */
+
         // If the event should be handled by accessibility focus first.
         if (event.isTargetAccessibilityFocus()) {
             // We don't have focus or no virtual descendant has it, do not handle the event.
@@ -14288,6 +14449,13 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     @UnsupportedAppUsage
     public final boolean dispatchPointerEvent(MotionEvent event) {
         if (event.isTouchEvent()) {
+            /** applens: start */
+            if (mContext instanceof DecorContext) {
+                boolean res = ((DecorContext)mContext).triggerUISelection(event);
+                if (res)
+                    return true;
+            }
+            /** applens: end */
             return dispatchTouchEvent(event);
         } else {
             return dispatchGenericMotionEvent(event);

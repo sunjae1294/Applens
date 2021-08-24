@@ -550,6 +550,23 @@ public final class DisplayManagerGlobal {
             throw e.rethrowFromSystemServer();
         }
     }
+
+    public void hideUIDisplayId(int id) {
+        try {
+            mDm.hideUIDisplayId(id);
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
+    public void showUIDisplayId(int id) {
+        try {
+            mDm.showUIDisplayId(id);
+        } catch (RemoteException e) {
+            throw e.rethrowFromSystemServer();
+        }
+    }
+
     public void hideOffScreenDisplay() {
         try {
             mDm.hideOffScreenDisplay();
@@ -565,10 +582,9 @@ public final class DisplayManagerGlobal {
         }
     }
 
-    /** @hide */
-    public void resizeUIDisplay(int width, int height, int id) {
+    public void resizeUIDisplay(boolean mode) {
         try {
-            mDm.resizeUIDisplay(width, height, id);
+            mDm.resizeUIDisplay(mode);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }

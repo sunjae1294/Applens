@@ -98,6 +98,10 @@ interface IDisplayManager {
 
     void showUIDisplay();
 
+    void hideUIDisplayId(int id);
+
+    void showUIDisplayId(int id);
+
     void hideOffScreenDisplay();
 
     void showOffScreenDisplay();
@@ -106,7 +110,7 @@ interface IDisplayManager {
 
     void showLoadingDisplay();
 
-    void resizeUIDisplay(int widht, int height, int id);
+    void resizeUIDisplay(boolean mode);
 
     
     int getUIDisplayCount();

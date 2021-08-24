@@ -166,6 +166,7 @@ import android.applens.UIDisplay;
 import android.view.Gravity;
 import android.widget.EditText;
 import android.os.SystemClock;
+import android.graphics.PixelFormat;
 
 import java.io.File;
 import java.io.IOException;
@@ -785,6 +786,12 @@ public class Activity extends ContextThemeWrapper
     private String mLensString = null;
     private boolean lensDone = false;
     private int mNumDisplay = 0;
+
+    /** @hide */
+    public static boolean mUISelectMode = false;
+
+    private View mOverlayView = null;
+
     /** applens: end */
     static final String FRAGMENTS_TAG = "android:fragments";
     private static final String LAST_AUTOFILL_ID = "android:lastAutofillId";
@@ -1909,6 +1916,42 @@ public class Activity extends ContextThemeWrapper
     private boolean macroUpdate = false;
 
     /** @hide */
+    public boolean triggerUISelection(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            mTouchPointNums = ev.getPointerCount();
+        }
+        else if (ev.getAction() == MotionEvent.ACTION_UP && mTouchPointNums == 3) {
+            mUISelectMode = !mUISelectMode;
+            if (mUISelectMode) {
+                WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                        mWindow.getDecorView().getWidth(),
+                        mWindow.getDecorView().getHeight(),
+                        WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG,
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                        PixelFormat.TRANSLUCENT);
+                params.gravity = Gravity.TOP | Gravity.LEFT;
+                params.x = 0;
+                params.y = 0;
+                mOverlayView = new View(this);
+                mOverlayView.setBackgroundColor(0x4d000000);
+                mWindowManager.addView(mOverlayView,params);
+            } else {
+                mWindowManager.removeView(mOverlayView);
+                mOverlayView = null;
+                finishAndRemoveTask();
+                System.exit(0);
+            }
+            mTouchPointNums = 0;
+            return true;
+        } else if (mTouchPointNums < ev.getPointerCount()) {
+            mTouchPointNums = ev.getPointerCount();
+        }
+        return false;
+    }
+
+    /** @hide */
     public boolean isOffScreen() {
         if(mDispId > 0)
            return true;
@@ -2123,14 +2166,21 @@ public class Activity extends ContextThemeWrapper
 
                                     Log.d("hoyoung", "macro targetView found");
 
-                                    tempView.dispatchTouchEvent(MotionEvent.obtain(
-                                                SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
-                                                MotionEvent.ACTION_DOWN,x, y, 0));
+                                    Handler handler = new Handler(Looper.getMainLooper());
+                                    handler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            tempView.dispatchTouchEvent(MotionEvent.obtain(
+                                                        SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
+                                                        MotionEvent.ACTION_DOWN,x, y, 0));
 
-                                    tempView.dispatchTouchEvent(MotionEvent.obtain(
-                                                SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
-                                                MotionEvent.ACTION_UP,x, y, 0));
-                                    Log.d(LENS_TAG, "inject touch to "+tempView+" on "+x+":"+y);
+                                            tempView.dispatchTouchEvent(MotionEvent.obtain(
+                                                        SystemClock.uptimeMillis(), SystemClock.uptimeMillis(),
+                                                        MotionEvent.ACTION_UP,x, y, 0));
+                                            Log.d(LENS_TAG, "inject touch to "+tempView+" on "+x+":"+y);
+                                            isWaiting = false;
+                                        }
+                                    }, 500);
                                 } else {
                                     if (delay > 0) {
                                         Handler handler = new Handler(Looper.getMainLooper());

@@ -179,6 +179,15 @@ final class UIDisplayAdapter extends DisplayAdapter {
 
     }
 
+    public void hideUIDisplayId(int id) {
+        int size = mUIDisps.size();
+        if (id <= size) {
+            for (int i = 0; i < id; i++) {
+                mUIDisps.get(i).hideLocked();
+            }
+        }
+    }
+
     public void hideLoadingDisplay() {
         if (mLoadingDisp != null)
             mLoadingDisp.hideLocked();
@@ -215,10 +224,10 @@ final class UIDisplayAdapter extends DisplayAdapter {
         }
     }
 
-    public void resizeUIDisplay(int width, int height, int id) {
-        mUIDisps.get(id).resizeLocked(width, height);
-        if (mUIDisps.indexOfKey(id+4) >= 0) {
-            mUIDisps.get(id+4).resizeLocked(width, height);
+    public void resizeUIDisplay(boolean mode) {
+       int size = mUIDisps.size();
+        for (int i = 0; i < size; i++) {
+            mUIDisps.get(i).resizeLocked(mode);
         }
     }
 
@@ -228,6 +237,15 @@ final class UIDisplayAdapter extends DisplayAdapter {
             mUIDisps.get(i).visualizeLocked();
             if (mUIDisps.indexOfKey(i+4) >= 0) 
                 mUIDisps.get((i) + 4).visualizeLocked();
+        }
+    }
+
+    public void showUIDisplayId(int id) {
+        int size = mUIDisps.size();
+        if (id <= size) {
+            for (int i = 0; i < id; i++) {
+                mUIDisps.get(i).visualizeLocked();
+            }
         }
     }
 
@@ -363,6 +381,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
         private float mScaleY = 0;
         private boolean mIsRight;
         private boolean mIsLoading;
+        private boolean mResizeMode = false;
 
 
         public UIDisplayHandle(String name, UIMode mode, int number) {
@@ -445,10 +464,9 @@ final class UIDisplayAdapter extends DisplayAdapter {
         private void showLocked() {
             mUIHandler.post(mShowRunnable);
         }
-        private void resizeLocked(int width, int height) {
-            mMode.mWidth = width;
-            mMode.mHeight = height;
-             mUIHandler.post(mResizeRunnable);
+        private void resizeLocked(boolean mode) {
+            mResizeMode = mode;
+            mUIHandler.post(mResizeRunnable);
         }
         private void dismissLocked() {
             mUIHandler.removeCallbacks(mShowRunnable);
@@ -492,8 +510,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
                 UIMode mode = mMode;
                 synchronized(getSyncRoot()) {
                     window = mWindow;
-                    window.resize(mode.mWidth, mode.mHeight, mode.mDensityDpi);
-                    mWindow.showUIDisplay();
+                    window.setResizeMode(mResizeMode);
                 }
             }
         };

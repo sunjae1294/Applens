@@ -70,11 +70,18 @@ final class UIDisplayWindow {
     private float mWindowScaleX;
     private float mWindowScaleY;
 
+    private boolean mIsDefSet = false;
+    private int defWindowX;
+    private int defWindowY;
+    private float defWindowScaleX;
+    private float defWindowScaleY;
+
     private float mLiveTranslationX;
     private float mLiveTranslationY;
     private float mLiveScale = 1.0f;
     private boolean mIsRight;
     private boolean mIsLoading;
+    private boolean mResizeMode = false;
 
     public UIDisplayWindow(Context context, String name,
             int width, int height, int densityDpi, boolean visible,boolean secure, boolean isRight, boolean isLoading,
@@ -132,7 +139,10 @@ final class UIDisplayWindow {
             mWindowManager.removeView(mWindowContent);
             mWindowVisible = false;
         }
-    } 
+    }
+   public void setResizeMode(boolean mode) {
+    mResizeMode = mode;
+   }  
     
     public void resize(int width, int height, int densityDpi) {
         resize(width, height, densityDpi, true);
@@ -207,6 +217,10 @@ final class UIDisplayWindow {
             mWindowX = mIsRight ? (int)(metrics.widthPixels/2) : 0;
             mWindowY = 0;
         }
+
+        mGestureDetector = new GestureDetector(mContext, mOnGestureListener);
+        mScaleGestureDetector = new ScaleGestureDetector(mContext, mOnScaleGestureListener);
+
         mWindowScaleX = INITIAL_SCALE;
         mWindowScaleY = INITIAL_SCALE;
     }
@@ -220,10 +234,31 @@ final class UIDisplayWindow {
     }
 
     public void relayoutUIDisplay(float x, float y, float scale) {
+        if(!mIsDefSet) {
+            defWindowScaleX = scale;
+            defWindowScaleY = scale;
+            defWindowX = (int)x;
+            defWindowY = (int)y;
+            mIsDefSet = true;
+
+            mWindowScaleX = scale;
+            mWindowScaleY = scale;
+            mWindowX = (int)x;
+            mWindowY = (int)y;
+        }
+        mLiveTranslationX =  ((int)x) - defWindowX;
+        mLiveTranslationY = ((int)y) - defWindowY;
+        mLiveScale = scale / defWindowScaleX;
+/*
+        defWindowScaleX = scale;
+        defWindowScalY = scale;
+        defWindowX = (int)x;
+        defWindowY = (int)y;
+        
         mWindowScaleX = scale;
         mWindowScaleY = scale;
         mWindowX = (int)x;
-        mWindowY = (int)y;
+        mWindowY = (int)y;*/
         relayout();
 
     }
@@ -234,6 +269,8 @@ final class UIDisplayWindow {
         mWindowParams.alpha = WINDOW_ALPHA;
         mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
         relayout();
+        mWindowVisible = false;
+
     }
 
     public void showUIDisplay() {
@@ -244,14 +281,28 @@ final class UIDisplayWindow {
     }
 
     private void updateWindowParams() {
+
+        float scaleX = mWindowScaleX * mLiveScale;
+        float scaleY = mWindowScaleY * mLiveScale;
+
+        scaleX = Math.min(scaleX, (float)mDefaultDisplayInfo.logicalWidth / mWidth);
+        scaleY = Math.min(scaleY, (float)mDefaultDisplayInfo.logicalHeight / mHeight);
+        /*
         mTextureView.getLayoutParams().width = mWidth;
         mTextureView.getLayoutParams().height = mHeight;
-        mTextureView.setScaleX(mWindowScaleX);
-        mTextureView.setScaleY(mWindowScaleY);
-        int width = (int)(mWidth * mWindowScaleX);
-        int height = (int)(mHeight * mWindowScaleY);
-        mWindowParams.x = mWindowX;
-        mWindowParams.y = mWindowY;
+        */
+        Slog.w("sunjae", "liveScale="+mLiveScale+" "+" scaleX="+scaleX);
+        mTextureView.setScaleX(scaleX);
+        mTextureView.setScaleY(scaleY);
+        int width = (int)(mWidth * scaleX);
+        int height = (int)(mHeight * scaleY);
+
+        int x = (int)(mWindowX + mLiveTranslationX);
+        int y = (int)(mWindowY + mLiveTranslationY);
+
+
+        mWindowParams.x = x;
+        mWindowParams.y = y;
         mWindowParams.width = width;
         mWindowParams.height = height;
         // Not use
@@ -325,29 +376,69 @@ final class UIDisplayWindow {
     private final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent event) {
-            float oldX = event.getX();
-            float oldY = event.getY();
-            float newX = oldX / mWindowScaleX;
-            float newY = oldY / mWindowScaleY;
-//            event.setLocation(newX, newY);
-            Slog.w("sunjae", "newX = " + newX + "newY = " + newY + "mWindowScale = " + mWindowScaleY + "action = " + event.getAction() + "displayID = "+mDisplayId);
+            if (!mResizeMode) {
+                float oldX = event.getX();
+                float oldY = event.getY();
+                float newX = oldX / mWindowScaleX;
+                float newY = oldY / mWindowScaleY;
+    //            event.setLocation(newX, newY);
+                Slog.w("sunjae", "newX = " + newX + "newY = " + newY + "mWindowScale = " + mWindowScaleY + "action = " + event.getAction() + "displayID = "+mDisplayId);
 
 
-            long now = SystemClock.uptimeMillis();
-            int action = event.getAction();
+                long now = SystemClock.uptimeMillis();
+                int action = event.getAction();
 
-            if (action == MotionEvent.ACTION_DOWN) {
-                lastTouchDown = now;
-            } 
-            
-//            MotionEvent newEvent = MotionEvent.obtain(lastTouchDown, now, action, newX, newY,0);
-            MotionEvent newEvent = MotionEvent.obtainNoHistory(event);
-            newEvent.setLocation(newX, newY);            
-            ((InputEvent)newEvent).setDisplayId(mDisplayId);
-            mInputManager.injectInputEvent(newEvent, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
-            
-//            mInputManager.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
-            
+                if (action == MotionEvent.ACTION_DOWN) {
+                    lastTouchDown = now;
+                } 
+                
+    //            MotionEvent newEvent = MotionEvent.obtain(lastTouchDown, now, action, newX, newY,0);
+                MotionEvent newEvent = MotionEvent.obtainNoHistory(event);
+                newEvent.setLocation(newX, newY);            
+                ((InputEvent)newEvent).setDisplayId(mDisplayId);
+                mInputManager.injectInputEvent(newEvent, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+                
+    //            mInputManager.injectInputEvent(event, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+                
+                return true;
+            } else {
+                final float oldX = event.getX();
+                final float oldY = event.getY();
+                event.setLocation(event.getRawX(), event.getRawY());
+
+                mGestureDetector.onTouchEvent(event);
+                mScaleGestureDetector.onTouchEvent(event);
+
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        saveWindowParams();
+                        break;
+                }
+                event.setLocation(oldX,oldY);
+                return true;
+            }
+        }
+    };
+
+    private final GestureDetector.OnGestureListener mOnGestureListener = new GestureDetector.SimpleOnGestureListener() {
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            mLiveTranslationX -= distanceX;
+            mLiveTranslationY -= distanceY;
+            relayout();
+            return true;
+        }
+    };
+
+    private final ScaleGestureDetector.OnScaleGestureListener mOnScaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            if (detector.getScaleFactor() != Float.NaN) {
+                mLiveScale *= detector.getScaleFactor();
+                Slog.w("sunjae", "onScale=" + detector.getScaleFactor());
+                relayout();
+            }
             return true;
         }
     };

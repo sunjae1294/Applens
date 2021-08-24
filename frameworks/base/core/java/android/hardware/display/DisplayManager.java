@@ -688,12 +688,20 @@ public final class DisplayManager {
         mGlobal.hideUIDisplay();
     }
 
+    public void hideUIDisplayId(int id) {
+        mGlobal.hideUIDisplayId(id);
+    }
+
     public void hideLoadingDisplay() {
         mGlobal.hideLoadingDisplay();
     }
 
     public void showUIDisplay() {
         mGlobal.showUIDisplay();
+    }
+
+    public void showUIDisplayId(int id) {
+        mGlobal.showUIDisplayId(id);
     }
 
     public void showLoadingDisplay() {
@@ -708,9 +716,8 @@ public final class DisplayManager {
         mGlobal.showOffScreenDisplay();
     }
 
-    /** @hide */
-    public void resizeUIDisplay(int width, int height, int id) {
-        mGlobal.resizeUIDisplay(width, height, id);
+    public void resizeUIDisplay(boolean mode) {
+        mGlobal.resizeUIDisplay(mode);
     }
 
     /** @hide */

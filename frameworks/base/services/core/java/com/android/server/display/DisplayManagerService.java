@@ -2044,9 +2044,9 @@ public final class DisplayManagerService extends SystemService {
         public int getUIDisplayCount() {
             return mUIDisplayAdapter.getUIDisplayCount();
         }
-        /** @hide */
-        public void resizeUIDisplay(int width, int height, int id) {
-            mUIDisplayAdapter.resizeUIDisplay(width, height, id);
+
+        public void resizeUIDisplay(boolean mode) {
+            mUIDisplayAdapter.resizeUIDisplay(mode);
         }
 
         public void hideLoadingDisplay() {
@@ -2062,6 +2062,10 @@ public final class DisplayManagerService extends SystemService {
             mUIDisplayAdapter.hideUIDisplay();
         }
 
+        public void hideUIDisplayId(int id) {
+            mUIDisplayAdapter.hideUIDisplayId(id);
+        }
+
         public void showLoadingDisplay() {
             mUIDisplayAdapter.showLoadingDisplay();
         }
@@ -2069,6 +2073,11 @@ public final class DisplayManagerService extends SystemService {
         public void showUIDisplay() {
             if (readyToSwitch)
                 mUIDisplayAdapter.showUIDisplay();
+        }
+
+        public void showUIDisplayId(int id) {
+            if (readyToSwitch)
+                mUIDisplayAdapter.showUIDisplayId(id);
         }
         
         public void hideOffScreenDisplay() {
