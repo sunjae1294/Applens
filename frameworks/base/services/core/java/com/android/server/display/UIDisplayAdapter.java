@@ -149,6 +149,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
 
 
         String leftName = "UI #" + numUi;
+        Slog.w("sunjae", "numUI = "+numUi);
         mUIDisps.put(numUi,new UIDisplayHandle(leftName, leftMode, numUi));
     }
 
@@ -202,7 +203,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
 
     public void relayoutUIDisplay(List<float[]> args, int id) {
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        int dispSize =( mUIDisps.size());
+        int dispSize =( mUIDisps.size() /2);
         int argSize = args.size();
         if (dispSize != argSize) {
 //            Slog.w("LENS", "#"+dispSize+" display, #"+argSize+" args not matching");
@@ -379,7 +380,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
         private float mY;
         private float mScale;
         private float mScaleY = 0;
-        private boolean mIsRight;
+        private boolean mIsRight = false;
         private boolean mIsLoading;
         private boolean mResizeMode = false;
 

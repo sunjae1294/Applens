@@ -202,7 +202,8 @@ final class UIDisplayWindow {
             mWindowParams.flags |= WindowManager.LayoutParams.FLAG_SECURE;
         }
         if (mIsRight || mIsLoading) {
-            mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+            Slog.w("sunjae", "is right!");
+//            mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
         }
 
         mWindowParams.privateFlags |= WindowManager.LayoutParams.PRIVATE_FLAG_FORCE_HARDWARE_ACCELERATED;
@@ -274,9 +275,11 @@ final class UIDisplayWindow {
     }
 
     public void showUIDisplay() {
+        Slog.w("sunjae", "show ui displays");
         WINDOW_ALPHA = 1.0f;
         mWindowParams.alpha = WINDOW_ALPHA;
         mWindowParams.flags ^= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+        mWindowVisible = true;
         relayout();
     }
 
@@ -376,6 +379,8 @@ final class UIDisplayWindow {
     private final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent event) {
+            Slog.w("sunjae", "touch on window!! resizemode=" +  mResizeMode);
+
             if (!mResizeMode) {
                 float oldX = event.getX();
                 float oldY = event.getY();

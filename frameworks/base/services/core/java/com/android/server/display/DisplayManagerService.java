@@ -2001,7 +2001,11 @@ public final class DisplayManagerService extends SystemService {
         }
 
         public int createUIDisplay(int width, int height) {
-            return mUIDisplayAdapter.createUIDisplay(width, height);
+            
+            int id = mUIDisplayAdapter.createUIDisplay(width, height);
+
+            createRightUIDisplay(width, height);
+            return id;
         }
 
         public void dismissLoadingDisplay() {
