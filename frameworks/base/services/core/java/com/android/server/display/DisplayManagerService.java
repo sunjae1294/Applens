@@ -1990,7 +1990,8 @@ public final class DisplayManagerService extends SystemService {
         /**Applens: start */
         private int mNumAppLaunched = 0;
         private int mNumAppReady = 0;
-        boolean readyToSwitch = false;
+        boolean readyToSwitch = true;
+//      booelan readyToSwitch = false;
         public int createOffScreenDisplay(int numApp) {
             mNumAppLaunched = numApp;
            return mOffScreenDisplayAdapter.createOffScreenDisplay();

@@ -233,7 +233,8 @@ final class UIDisplayAdapter extends DisplayAdapter {
     }
 
     public void showUIDisplay() {
-       int size = mUIDisps.size();
+        Slog.w("sunjae", "showUI, Adapter");
+       int size = (mUIDisps.size()/2);
         for (int i = 0; i < size; i++) {
             mUIDisps.get(i).visualizeLocked();
             if (mUIDisps.indexOfKey(i+4) >= 0) 

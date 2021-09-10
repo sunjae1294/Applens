@@ -278,7 +278,7 @@ final class UIDisplayWindow {
         Slog.w("sunjae", "show ui displays");
         WINDOW_ALPHA = 1.0f;
         mWindowParams.alpha = WINDOW_ALPHA;
-        mWindowParams.flags ^= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+        //mWindowParams.flags ^= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
         mWindowVisible = true;
         relayout();
     }

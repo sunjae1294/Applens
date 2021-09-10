@@ -2588,7 +2588,7 @@ public class Activity extends ContextThemeWrapper
         // hide loading Display
 
         mDisplayManager.hideLoadingDisplay();
-        mDisplayManager.showUIDisplay();
+//        mDisplayManager.showUIDisplay();
         /*
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(new Runnable() {
