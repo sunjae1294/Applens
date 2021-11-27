@@ -202,12 +202,13 @@ final class UIDisplayAdapter extends DisplayAdapter {
 
     public void relayoutUIDisplay(List<float[]> args, int id) {
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        int dispSize =( mUIDisps.size());
+        int dispSize =(mUIDisps.size());
         int argSize = args.size();
         if (dispSize != argSize) {
-//            Slog.w("LENS", "#"+dispSize+" display, #"+argSize+" args not matching");
+            Slog.w("sunjae", "#"+dispSize+" display, #"+argSize+" args not matching");
             return;
         }
+	Slog.w("sunjae", "relayoutUIDisplay Adapter.");
         for (int i = 0; i < dispSize; i++) {
             float[] arg = args.get(i);
             float left = arg[0];
@@ -413,6 +414,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
             if (!mIsLoading) {
                 switch (id) {
                     case 0:
+			Slog.w("sunjae", "relayoutLocked");
                         mX = left;
                         mY = top;
                         mScale = scale;

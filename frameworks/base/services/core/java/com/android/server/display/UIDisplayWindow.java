@@ -193,7 +193,7 @@ final class UIDisplayWindow {
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN 
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
                 | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
-                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                ^ WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
               PixelFormat.TRANSLUCENT);
         if (mIsLoading)
             mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
@@ -234,6 +234,7 @@ final class UIDisplayWindow {
     }
 
     public void relayoutUIDisplay(float x, float y, float scale) {
+	Slog.w("sunjae", "relayoutUIDisplay");
         if(!mIsDefSet) {
             defWindowScaleX = scale;
             defWindowScaleY = scale;
@@ -291,7 +292,6 @@ final class UIDisplayWindow {
         mTextureView.getLayoutParams().width = mWidth;
         mTextureView.getLayoutParams().height = mHeight;
         */
-        Slog.w("sunjae", "liveScale="+mLiveScale+" "+" scaleX="+scaleX);
         mTextureView.setScaleX(scaleX);
         mTextureView.setScaleY(scaleY);
         int width = (int)(mWidth * scaleX);
@@ -436,7 +436,6 @@ final class UIDisplayWindow {
         public boolean onScale(ScaleGestureDetector detector) {
             if (detector.getScaleFactor() != Float.NaN) {
                 mLiveScale *= detector.getScaleFactor();
-                Slog.w("sunjae", "onScale=" + detector.getScaleFactor());
                 relayout();
             }
             return true;

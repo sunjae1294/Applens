@@ -180,6 +180,7 @@ import android.util.TypedValue;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 import java.io.FileInputStream;
+import android.os.SystemClock;
 /** applens: end */
 
 /**
@@ -1970,6 +1971,7 @@ public class Activity extends ContextThemeWrapper
 
     /** @hide */
     public void fetchSubtree(boolean firstTime, View decorView) {
+	Log.d("vuitton extract", "start="+System.currentTimeMillis());
         mAppLensManager = AppLensManager.getInstance(this);
         Log.d("LENS", "fetch Subtree = "+firstTime+" / " +mComponent.getClassName());
         if (extractSubtree(firstTime, decorView)) {
@@ -2515,18 +2517,23 @@ public class Activity extends ContextThemeWrapper
     public void migrateUI() {
         ArrayList<ViewGroup> subtrees = mAppLensManager.getSubtrees();
         int uiDisplayCount = mDisplayManager.getUIDisplayCount();
-        Log.d("LENS", "migrateUI!!"+" / " +mComponent.getClassName());
-        Log.d("LENS", "migrateUI numDisplay="+mNumDisplay);
-
+	ArrayList<Integer> dispIds = new ArrayList<Integer>();
         for (int i = 0; i < mNumDisplay; i++) {
             int width = displaySizes.get(i)[0];
             int height = displaySizes.get(i)[1];
-            int id = mDisplayManager.createUIDisplay(width,height);
+
+		Log.d("vuitton extract","end="+System.currentTimeMillis());
+            dispIds.add(mDisplayManager.createUIDisplay(width,height));
+	}
+//		int id = mDisplayManager.createUIDisplay(width,height);            
+	
+	/*    
             try {
                 Thread.sleep(1000);
             } catch(Exception e) {
             
-            }
+            }*/
+	    
             /* for reusing display
             if (i >= uiDisplayCount) {
                 Log.d("LENS", "display not exist. creating");
@@ -2539,12 +2546,16 @@ public class Activity extends ContextThemeWrapper
                 Log.d("LENS", "display already exist. resizing to "+displaySizes.get(i)[0]+":"+displaySizes.get(i)[1]);
                 mDisplayManager.resizeUIDisplay(width, height, i);
             }*/
+	int index = 0;
+	while(dispIds.size()>0) {
+		int id = dispIds.get(0);
             Display[] presentationDisplays = mDisplayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
             for (Display display : presentationDisplays) {
                 if (display.getName().equals("UI #"+id)) {
                     Log.d("LENS", "drawing on UI #"+id);
-                    Presentation presentation = new UIDisplay(this,display,subtrees.get(i), width, height);
+                    Presentation presentation = new UIDisplay(this,display,subtrees.get(index), displaySizes.get(index)[0],displaySizes.get(index)[1]);
                     presentation.show();
+
                     if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
                         // touch video to bring up seek bar
                         long downTime = SystemClock.uptimeMillis();
@@ -2581,8 +2592,11 @@ public class Activity extends ContextThemeWrapper
                     }
 //                    if (i >= uiDisplayCount)
 //                        mDisplayManager.createRightUIDisplay(width,height);
-                }
-            }
+            
+            		dispIds.remove(0);
+			index ++;
+	    	}
+	    }
         }
 
         // hide loading Display
