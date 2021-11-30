@@ -2249,49 +2249,37 @@ public class Activity extends ContextThemeWrapper
 
         //find seek bar
         // id of parent view
-        String parentId = "@id/next_gen_watch_layout";
-        int parentViewId = getResources().getIdentifier(parentId,"id", getPackageName());
-        View parentView = decorView.findViewById(parentViewId);
+        String targetId = "@id/watch_while_time_bar_view";
+        int targetViewId = getResources().getIdentifier(targetId,"id", getPackageName());
+        View targetView = decorView.findViewById(targetViewId);
 
-        if (parentView == null) {
+        if (targetView == null || targetView.getHeight() < 10) {
             decorView.setWatchUpdate(true);
             watchUpdate = true;
-            Log.d(LENS_TAG, parentId + " not found");
+            Log.d(LENS_TAG, targetId + " not found");
             return false;
-        } else {
-            int childCount = ((ViewGroup)parentView).getChildCount();
-            Log.d(LENS_TAG, "child count = " + childCount);
-            if (childCount < 8) {
-                decorView.setWatchUpdate(true);
-                watchUpdate = true;
-                return false;
-            }
-            //target View
-            View targetView = ((ViewGroup)parentView).getChildAt(6);
-            for (int i = 0; i < childCount; i++) {
-                View view = ((ViewGroup)parentView).getChildAt(i);
-//                Log.d(LENS_TAG, "children = "+view);
-            }
-//            Log.d(LENS_TAG,"6th child = "+targetView);
-            ViewGroup orgParent = (ViewGroup)targetView.getParent();
-            if (orgParent != null) {
-                orgParent.removeView(targetView);
-                targetView.mVirtualParent = orgParent;
-            }
-
-            ViewGroup.LayoutParams params = subtree.generateLayoutParams();
-            ViewGroup.LayoutParams orgParams = targetView.getLayoutParams();
-
-            //enlarge seekbar
-            View seekBar = ((ViewGroup)targetView).getChildAt(0);
-            Log.d("LENS", "seekbar = "+seekBar);
-            seekBar.setScaleY(2.0f);
-
-            targetView.clearPosition();
-            subtree.addView(targetView, params);
-            return true;
         }
+
+//            Log.d(LENS_TAG,"6th child = "+targetView);
+        ViewGroup orgParent = (ViewGroup)targetView.getParent();
+        if (orgParent != null) {
+            orgParent.removeView(targetView);
+            targetView.mVirtualParent = orgParent;
+        }
+
+        ViewGroup.LayoutParams params = subtree.generateLayoutParams();
+        ViewGroup.LayoutParams orgParams = targetView.getLayoutParams();
+
+        //enlarge seekbar
+        View seekBar = ((ViewGroup)targetView).getChildAt(0);
+        Log.d("LENS", "seekbar = "+seekBar);
+        seekBar.setScaleY(2.0f);
+
+        targetView.clearPosition();
+        subtree.addView(targetView, params);
+        return true;
     }
+    
 
     int parsedBlocks = 0;
     private boolean inflate(XmlPullParser parser, boolean firstTime, View decorView) throws Exception {
