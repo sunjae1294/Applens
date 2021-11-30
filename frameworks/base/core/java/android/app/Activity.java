@@ -2065,10 +2065,10 @@ public class Activity extends ContextThemeWrapper
     public boolean bringToFront() {
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         if (mComponent.getClassName().equals("com.lotte.on.product.activity.ProductDetailActivity") ||
-                mComponent.getClassName().equals("com.coupang.mobile.domain.sdp.interstellar.view.NewSdpActivity") ||
+                mComponent.getClassName().equals("com.coupang.mobile.domain.sdp.redesign.view.ProductDetailActivity") || // com.coupang.mobile.domain.sdp.interstellar.view.NewSdpActivity") ||
                 mComponent.getClassName().equals("com.starbucks.co2.ui.order.store.SirenOrderStoreSearchActivity") ||
                 mComponent.getClassName().equals("com.ediya.coupon.view.order.OrderStoreActivity")) {
-            Log.d("LENS", "target Activity");
+            Log.d("LENS", "target Activity!!");
             mBringToFront = true;
 
            activityManager.lensBringToFront(getTaskId(), true);
@@ -2248,39 +2248,37 @@ public class Activity extends ContextThemeWrapper
 
         //find seek bar
         // id of parent view
-        String parentId = "@id/watch_while_time_bar_view";
-        int parentViewId = getResources().getIdentifier(parentId,"id", getPackageName());
-        View parentView = decorView.findViewById(parentViewId);
+        String targetId = "@id/watch_while_time_bar_view";
+        int targetViewId = getResources().getIdentifier(targetId,"id", getPackageName());
+        View targetView = decorView.findViewById(targetViewId);
 
-        if (parentView == null || parentView.getHeight() <10) {
+        if (targetView == null || targetView.getHeight() < 10) {
             decorView.setWatchUpdate(true);
             watchUpdate = true;
-            Log.d(LENS_TAG, parentId + " not found");
+            Log.d(LENS_TAG, targetId + " not found");
             return false;
-        } else {
-            //target View
-	    View targetView = parentView;
-//            View targetView = ((ViewGroup)parentView).getChildAt(5);
+	}
+
 //            Log.d(LENS_TAG,"6th child = "+targetView);
-            ViewGroup orgParent = (ViewGroup)targetView.getParent();
-            if (orgParent != null) {
-                orgParent.removeView(targetView);
-                targetView.mVirtualParent = orgParent;
-            }
-
-            ViewGroup.LayoutParams params = subtree.generateLayoutParams();
-            ViewGroup.LayoutParams orgParams = targetView.getLayoutParams();
-
-            //enlarge seekbar
-            View seekBar = ((ViewGroup)targetView).getChildAt(0);
-            Log.d("LENS", "seekbar = "+seekBar);
-            seekBar.setScaleY(2.0f);
-
-            targetView.clearPosition();
-            subtree.addView(targetView, params);
-            return true;
+        ViewGroup orgParent = (ViewGroup)targetView.getParent();
+        if (orgParent != null) {
+            orgParent.removeView(targetView);
+            targetView.mVirtualParent = orgParent;
         }
+
+        ViewGroup.LayoutParams params = subtree.generateLayoutParams();
+        ViewGroup.LayoutParams orgParams = targetView.getLayoutParams();
+
+        //enlarge seekbar
+        View seekBar = ((ViewGroup)targetView).getChildAt(0);
+        Log.d("LENS", "seekbar = "+seekBar);
+        seekBar.setScaleY(2.0f);
+
+        targetView.clearPosition();
+        subtree.addView(targetView, params);
+        return true;
     }
+    
 
     int parsedBlocks = 0;
     private boolean inflate(XmlPullParser parser, boolean firstTime, View decorView) throws Exception {
