@@ -234,7 +234,6 @@ final class UIDisplayWindow {
     }
 
     public void relayoutUIDisplay(float x, float y, float scale) {
-	Slog.w("sunjae", "relayoutUIDisplay");
         if(!mIsDefSet) {
             defWindowScaleX = scale;
             defWindowScaleY = scale;

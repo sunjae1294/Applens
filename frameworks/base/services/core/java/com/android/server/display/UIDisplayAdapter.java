@@ -1,5 +1,6 @@
 package com.android.server.display;
 
+import android.os.SystemClock;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
@@ -208,7 +209,6 @@ final class UIDisplayAdapter extends DisplayAdapter {
             Slog.w("sunjae", "#"+dispSize+" display, #"+argSize+" args not matching");
             return;
         }
-	Slog.w("sunjae", "relayoutUIDisplay Adapter.");
         for (int i = 0; i < dispSize; i++) {
             float[] arg = args.get(i);
             float left = arg[0];
@@ -414,7 +414,6 @@ final class UIDisplayAdapter extends DisplayAdapter {
             if (!mIsLoading) {
                 switch (id) {
                     case 0:
-			Slog.w("sunjae", "relayoutLocked");
                         mX = left;
                         mY = top;
                         mScale = scale;
@@ -524,7 +523,6 @@ final class UIDisplayAdapter extends DisplayAdapter {
                 UIDisplayWindow window = new UIDisplayWindow(getContext(), mName, mode.mWidth, mode.mHeight,
                         mode.mDensityDpi, mDefaultVisible, false, mIsRight, mIsLoading, UIDisplayHandle.this);
                 window.show();
-
                 synchronized (getSyncRoot()) {
                     mWindow = window;
                 }
