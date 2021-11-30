@@ -1,5 +1,6 @@
 package com.android.server.display;
 
+import android.os.SystemClock;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
@@ -524,7 +525,8 @@ final class UIDisplayAdapter extends DisplayAdapter {
                 UIDisplayWindow window = new UIDisplayWindow(getContext(), mName, mode.mWidth, mode.mHeight,
                         mode.mDensityDpi, mDefaultVisible, false, mIsRight, mIsLoading, UIDisplayHandle.this);
                 window.show();
-
+            	Slog.w("vuitton test display", "end="+System.currentTimeMillis());
+		Slog.w("vuitton test attach", "start="+System.currentTimeMillis());
                 synchronized (getSyncRoot()) {
                     mWindow = window;
                 }

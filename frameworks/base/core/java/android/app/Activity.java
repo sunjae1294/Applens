@@ -1971,7 +1971,7 @@ public class Activity extends ContextThemeWrapper
 
     /** @hide */
     public void fetchSubtree(boolean firstTime, View decorView) {
-	Log.d("vuitton extract", "start="+System.currentTimeMillis());
+	Log.d("vuitton test extract", "start="+System.currentTimeMillis());
         mAppLensManager = AppLensManager.getInstance(this);
         Log.d("LENS", "fetch Subtree = "+firstTime+" / " +mComponent.getClassName());
         if (extractSubtree(firstTime, decorView)) {
@@ -2522,7 +2522,8 @@ public class Activity extends ContextThemeWrapper
             int width = displaySizes.get(i)[0];
             int height = displaySizes.get(i)[1];
 
-		Log.d("vuitton extract","end="+System.currentTimeMillis());
+		Log.d("vuitton test extract","end="+System.currentTimeMillis());
+		Log.d("vuitton test display","start="+System.currentTimeMillis());
             dispIds.add(mDisplayManager.createUIDisplay(width,height));
 	}
 //		int id = mDisplayManager.createUIDisplay(width,height);            
@@ -2555,7 +2556,8 @@ public class Activity extends ContextThemeWrapper
                     Log.d("LENS", "drawing on UI #"+id);
                     Presentation presentation = new UIDisplay(this,display,subtrees.get(index), displaySizes.get(index)[0],displaySizes.get(index)[1]);
                     presentation.show();
-
+			Log.d("vuitton test attach","end="+System.currentTimeMillis());
+			Log.d("vuitton test render","start="+System.currentTimeMillis());
                     if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
                         // touch video to bring up seek bar
                         long downTime = SystemClock.uptimeMillis();
