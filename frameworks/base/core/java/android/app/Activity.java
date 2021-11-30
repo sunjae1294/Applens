@@ -1891,8 +1891,7 @@ public class Activity extends ContextThemeWrapper
         Display disp = getDisplay();
         mDispId = disp.getDisplayId();
         //for test
-//        if (mDispId>=0) {
-        if (mDispId>0 && !lensDone) {
+        if (mDispId > 0 && !lensDone) {
 //            Log.d("LENS", "onPostResume!! = "+mComponent.getClassName());
 //
             Handler handler = new Handler(Looper.getMainLooper());
@@ -1971,7 +1970,6 @@ public class Activity extends ContextThemeWrapper
 
     /** @hide */
     public void fetchSubtree(boolean firstTime, View decorView) {
-	Log.d("vuitton extract", "start="+System.currentTimeMillis());
         mAppLensManager = AppLensManager.getInstance(this);
         Log.d("LENS", "fetch Subtree = "+firstTime+" / " +mComponent.getClassName());
         if (extractSubtree(firstTime, decorView)) {
@@ -2099,6 +2097,7 @@ public class Activity extends ContextThemeWrapper
                         if (parser.getName().equals("activity") 
                                 && parser.getAttributeValue(null, "android:name").equals(mComponent.getClassName())) {
                             activityName = parser.getAttributeValue(null, "android:name");
+			    Log.d("LENS", "start parse="+mComponent.getClassName());
                             startParse = true;
                         }
                         
@@ -2249,29 +2248,19 @@ public class Activity extends ContextThemeWrapper
 
         //find seek bar
         // id of parent view
-        String parentId = "@id/next_gen_watch_layout";
+        String parentId = "@id/watch_while_time_bar_view";
         int parentViewId = getResources().getIdentifier(parentId,"id", getPackageName());
         View parentView = decorView.findViewById(parentViewId);
 
-        if (parentView == null) {
+        if (parentView == null || parentView.getHeight() <10) {
             decorView.setWatchUpdate(true);
             watchUpdate = true;
             Log.d(LENS_TAG, parentId + " not found");
             return false;
         } else {
-            int childCount = ((ViewGroup)parentView).getChildCount();
-            Log.d(LENS_TAG, "child count = " + childCount);
-            if (childCount < 8) {
-                decorView.setWatchUpdate(true);
-                watchUpdate = true;
-                return false;
-            }
             //target View
-            View targetView = ((ViewGroup)parentView).getChildAt(6);
-            for (int i = 0; i < childCount; i++) {
-                View view = ((ViewGroup)parentView).getChildAt(i);
-//                Log.d(LENS_TAG, "children = "+view);
-            }
+	    View targetView = parentView;
+//            View targetView = ((ViewGroup)parentView).getChildAt(5);
 //            Log.d(LENS_TAG,"6th child = "+targetView);
             ViewGroup orgParent = (ViewGroup)targetView.getParent();
             if (orgParent != null) {
@@ -2522,7 +2511,6 @@ public class Activity extends ContextThemeWrapper
             int width = displaySizes.get(i)[0];
             int height = displaySizes.get(i)[1];
 
-		Log.d("vuitton extract","end="+System.currentTimeMillis());
             dispIds.add(mDisplayManager.createUIDisplay(width,height));
 	}
 //		int id = mDisplayManager.createUIDisplay(width,height);            
@@ -2555,7 +2543,6 @@ public class Activity extends ContextThemeWrapper
                     Log.d("LENS", "drawing on UI #"+id);
                     Presentation presentation = new UIDisplay(this,display,subtrees.get(index), displaySizes.get(index)[0],displaySizes.get(index)[1]);
                     presentation.show();
-
                     if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
                         // touch video to bring up seek bar
                         long downTime = SystemClock.uptimeMillis();

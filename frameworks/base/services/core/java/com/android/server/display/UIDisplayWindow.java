@@ -193,7 +193,7 @@ final class UIDisplayWindow {
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN 
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
                 | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
-                ^ WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
               PixelFormat.TRANSLUCENT);
         if (mIsLoading)
             mWindowParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
@@ -277,6 +277,7 @@ final class UIDisplayWindow {
         WINDOW_ALPHA = 1.0f;
         mWindowParams.alpha = WINDOW_ALPHA;
         mWindowParams.flags ^= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+	mWindowVisible = true;        
         relayout();
     }
 

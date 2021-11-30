@@ -2002,8 +2002,6 @@ public final class DisplayManagerService extends SystemService {
 
         public int createUIDisplay(int width, int height) {
 	    int id = mUIDisplayAdapter.createUIDisplay(width, height);
-            Slog.w("vuitton test display", "end="+System.currentTimeMillis());
-	    Slog.w("vuitton test attach","start="+System.currentTimeMillis());
 	    return id; 
         }
 
@@ -2074,7 +2072,7 @@ public final class DisplayManagerService extends SystemService {
         }
 
         public void showUIDisplay() {
-//            if (readyToSwitch)
+            if (readyToSwitch)
                 mUIDisplayAdapter.showUIDisplay();
         }
 
