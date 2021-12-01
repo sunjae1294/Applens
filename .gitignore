@@ -17,19 +17,19 @@
 !/frameworks/base/data/etc/
 !/frameworks/base/data/etc/privapp-permissions-platform.xml
 
-!/vendor/
-/vendor/**
-!/vendor/opengapps/
-/vendor/opengapps/**
-!/vendor/opengapps/coral/
-!/vendor/opengapps/coral/**
-
 !/frameworks/native/
 frameworks/native/**
 !/frameworks/native/services/
 /frameworks/native/services/**
 !/frameworks/native/services/surfaceflinger/
 !/frameworks/native/services/surfaceflinger/**
+
+!/vendor/
+/vendor/**
+!/vendor/opengapps/
+/vendor/opengapps/**
+!/vendor/opengapps/coral/
+!/vendor/opengapps/coral/**
 
 !/device/
 /device/**
