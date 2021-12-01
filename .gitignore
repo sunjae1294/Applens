@@ -24,6 +24,13 @@
 !/vendor/opengapps/coral/
 !/vendor/opengapps/coral/**
 
+!/frameworks/native/
+frameworks/native/**
+!/frameworks/native/services/
+/frameworks/native/services/**
+!/frameworks/native/services/surfaceflinger/
+!/frameworks/native/services/surfaceflinger/**
+
 !/device/
 /device/**
 !/device/google/
