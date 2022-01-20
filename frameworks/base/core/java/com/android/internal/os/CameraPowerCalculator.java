@@ -16,6 +16,9 @@
 package com.android.internal.os;
 
 import android.os.BatteryStats;
+//SERA
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Power calculator for the camera subsystem, excluding the flashlight.

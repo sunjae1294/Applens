@@ -15,6 +15,8 @@
  */
 package com.android.internal.os;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import android.os.BatteryStats;
 import android.util.Log;
 
@@ -49,11 +51,20 @@ public class WifiPowerCalculator extends PowerCalculator {
         final long txTime = counter.getTxTimeCounters()[0].getCountLocked(statsType);
         final long rxTime = counter.getRxTimeCounter().getCountLocked(statsType);
         app.wifiRunningTimeMs = idleTime + rxTime + txTime;
+        /*
+         * SERALEE logging time for each Wifi status
+         */
+        app.wifiRxTimeMs = rxTime;
+        app.wifiTxTimeMs = txTime;
+        app.wifiIdleTimeMs = idleTime;
+
         mTotalAppRunningTime += app.wifiRunningTimeMs;
 
         app.wifiPowerMah =
                 ((idleTime * mIdleCurrentMa) + (txTime * mTxCurrentMa) + (rxTime * mRxCurrentMa))
                 / (1000*60*60);
+
+
         mTotalAppPowerDrain += app.wifiPowerMah;
 
         app.wifiRxPackets = u.getNetworkActivityPackets(BatteryStats.NETWORK_WIFI_RX_DATA,
@@ -82,6 +93,9 @@ public class WifiPowerCalculator extends PowerCalculator {
 
         app.wifiRunningTimeMs = Math.max(0,
                 (idleTimeMs + rxTimeMs + txTimeMs) - mTotalAppRunningTime);
+        app.wifiRxTimeMs = rxTimeMs;
+        app.wifiTxTimeMs = txTimeMs;
+        app.wifiIdleTimeMs = idleTimeMs;
 
         double powerDrainMah = counter.getPowerCounter().getCountLocked(statsType)
                 / (double)(1000*60*60);

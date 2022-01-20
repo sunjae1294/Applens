@@ -1892,7 +1892,9 @@ public class Activity extends ContextThemeWrapper
         mDispId = disp.getDisplayId();
         //for test
 //        if (mDispId>=0) {
-        if (mDispId>0 && !lensDone) {
+	/** test      */ 
+//        if (mDispId>0 && !lensDone) {
+	if (!lensDone){        
 //            Log.d("LENS", "onPostResume!! = "+mComponent.getClassName());
 //
             Handler handler = new Handler(Looper.getMainLooper());
@@ -1900,12 +1902,13 @@ public class Activity extends ContextThemeWrapper
                 @Override
                 public void run() {
                     parseTouch(true, mWindow.getDecorView());
-                    fetchSubtree(true, mWindow.getDecorView());
+ //                   fetchSubtree(true, mWindow.getDecorView());
                 }
             }, 1000);
 
             lensDone = true;
         }
+/*	*/
 
         /** applens: end */
     }
@@ -2030,7 +2033,9 @@ public class Activity extends ContextThemeWrapper
                 if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
                     Log.d(LENS_TAG, "found youtube");
                     displaySizes = new ArrayList<int[]>();
-                    res = inflateYoutube(firstTime, decorView); 
+		    return false;
+		    // youtube battery test
+//                    res = inflateYoutube(firstTime, decorView); 
                 } else {
                     File layoutFile = new File(getExternalFilesDir(null) + "/second_layout.xml");
 //                    Log.d("LENS", (getExternalFilesDir(null)).toString());
@@ -2043,7 +2048,9 @@ public class Activity extends ContextThemeWrapper
                 }
             }else{
                 if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
-                    res = inflateYoutube(firstTime, decorView);
+// youtube battery test			
+//                    res = inflateYoutube(firstTime, decorView);
+                    return false;
                 } else { 
                     res = inflate(uiParser, firstTime, decorView);
                 }

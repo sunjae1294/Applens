@@ -19,6 +19,11 @@ import android.os.BatteryStats;
 import android.util.ArrayMap;
 import android.util.Log;
 
+//SERA
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONArray;
+
 public class CpuPowerCalculator extends PowerCalculator {
     private static final String TAG = "CpuPowerCalculator";
     private static final boolean DEBUG = BatteryStatsHelper.DEBUG;
@@ -35,11 +40,21 @@ public class CpuPowerCalculator extends PowerCalculator {
         app.cpuTimeMs = (u.getUserCpuTimeUs(statsType) + u.getSystemCpuTimeUs(statsType)) / 1000;
         final int numClusters = mProfile.getNumCpuClusters();
 
+        int totalTime = 0;
+
         double cpuPowerMaUs = 0;
+        //SERA
+        JSONArray cpuTimesPerSpeed = new JSONArray();
         for (int cluster = 0; cluster < numClusters; cluster++) {
             final int speedsForCluster = mProfile.getNumSpeedStepsInCpuCluster(cluster);
+            JSONObject clusterTimes = new JSONObject();
             for (int speed = 0; speed < speedsForCluster; speed++) {
                 final long timeUs = u.getTimeAtCpuSpeed(cluster, speed, statsType);
+                try {
+                  clusterTimes.put(Integer.toString(speed), timeUs);
+                } catch (JSONException e) {
+                  Log.d(TAG, "Wrong!!!");
+                }
                 final double cpuSpeedStepPower = timeUs *
                         mProfile.getAveragePowerForCpuCore(cluster, speed);
                 if (DEBUG) {
@@ -49,7 +64,11 @@ public class CpuPowerCalculator extends PowerCalculator {
                 }
                 cpuPowerMaUs += cpuSpeedStepPower;
             }
+            cpuTimesPerSpeed.put(clusterTimes);
         }
+        app.cpuUsageJSON = cpuTimesPerSpeed.toString();
+
+        
         cpuPowerMaUs += u.getCpuActiveTime() * 1000 * mProfile.getAveragePower(
                 PowerProfile.POWER_CPU_ACTIVE);
         long[] cpuClusterTimes = u.getCpuClusterTimes();
@@ -76,6 +95,7 @@ public class CpuPowerCalculator extends PowerCalculator {
             Log.d(TAG, "UID " + u.getUid() + ": CPU time=" + app.cpuTimeMs + " ms power="
                     + BatteryStatsHelper.makemAh(app.cpuPowerMah));
         }
+
 
         // Keep track of the package with highest drain.
         double highestDrain = 0;

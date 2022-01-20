@@ -483,6 +483,9 @@ final class UIDisplayAdapter extends DisplayAdapter {
                 mDevice = new UIDisplayDevice(displayToken, mName, mMode, refreshRate, presentationDeadlineNanos,
                         state, surfaceTexture, mNumber);
                sendDisplayDeviceEventLocked(mDevice, DISPLAY_DEVICE_EVENT_ADDED);
+	       Slog.w("vuitton test display", "end="+System.currentTimeMillis());
+		Slog.w("vuitton test attach", "start="+System.currentTimeMillis());
+
             }
         }
 
@@ -525,8 +528,10 @@ final class UIDisplayAdapter extends DisplayAdapter {
                 UIDisplayWindow window = new UIDisplayWindow(getContext(), mName, mode.mWidth, mode.mHeight,
                         mode.mDensityDpi, mDefaultVisible, false, mIsRight, mIsLoading, UIDisplayHandle.this);
                 window.show();
+		/**
             	Slog.w("vuitton test display", "end="+System.currentTimeMillis());
 		Slog.w("vuitton test attach", "start="+System.currentTimeMillis());
+		*/
                 synchronized (getSyncRoot()) {
                     mWindow = window;
                 }

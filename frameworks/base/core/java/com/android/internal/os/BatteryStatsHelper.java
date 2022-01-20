@@ -48,6 +48,8 @@ import com.android.internal.os.BatterySipper.DrainType;
 import com.android.internal.util.ArrayUtils;
 
 import java.io.File;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -66,7 +68,7 @@ import java.util.Locale;
 public class BatteryStatsHelper {
     static final boolean DEBUG = false;
 
-    private static final String TAG = BatteryStatsHelper.class.getSimpleName();
+    private static final String TAG = BatteryStatsHelper.class.getSimpleName() + "SERALEE";
 
     private static BatteryStats sStatsXfer;
     private static Intent sBatteryBroadcastXfer;
@@ -142,6 +144,11 @@ public class BatteryStatsHelper {
     PowerCalculator mFlashlightPowerCalculator;
     PowerCalculator mMemoryPowerCalculator;
     PowerCalculator mMediaPowerCalculator;
+    //SERA
+    /*
+     * @hide
+     */
+    PowerCalculator mWifiPowerEstimator;
 
     boolean mHasWifiPowerReporting = false;
     boolean mHasBluetoothPowerReporting = false;
@@ -422,6 +429,12 @@ public class BatteryStatsHelper {
         }
         mWifiPowerCalculator.reset();
 
+
+        //SERA : force to add estimator
+        mWifiPowerEstimator = new WifiPowerEstimator(mPowerProfile);
+        mWifiPowerEstimator.reset();
+
+
         final boolean hasBluetoothPowerReporting = checkHasBluetoothPowerReporting(mStats,
                 mPowerProfile);
         if (mBluetoothPowerCalculator == null ||
@@ -516,6 +529,66 @@ public class BatteryStatsHelper {
             }
         }
 
+        // SERALEE : Logging the usage of resources
+        final String Log_tag = "SERALEE-LOG";
+        Log.d(Log_tag, "[*] Start");
+        File file = new File("/data/local/tmp/log");
+        try {
+          FileWriter writer = new FileWriter(file);
+          Log.d(Log_tag, "UsageList Size : " + mUsageList.size());
+          Log.d(Log_tag, "mWifiSippers Size : " + mWifiSippers.size());
+          Log.d(Log_tag, "mBluetoothSippers Size : " + mBluetoothSippers.size());
+          Log.d(Log_tag, "mUserSippers Size : " + mUserSippers.size());
+          writer.write(mUsageList.size());
+          for (int i = 0, size = mUsageList.size(); i < size; i++) {
+            final BatterySipper sipper = mUsageList.get(i);
+            int uid = sipper.getUid();
+            String target_package_name;
+            if(sipper.name == null)
+              target_package_name = mPackageManager.getNameForUid(uid);
+            else
+              target_package_name = sipper.name;
+            sipper.writePower(writer,target_package_name);
+          }
+          for (int i = 0, size = mWifiSippers.size(); i < size; i++) {
+            final BatterySipper sipper = mWifiSippers.get(i);
+            int uid = sipper.getUid();
+            String target_package_name;
+            if(sipper.name ==null)
+              target_package_name = mPackageManager.getNameForUid(uid);
+            else
+              target_package_name = sipper.name;
+            sipper.writePower(writer,target_package_name);
+          }
+          for (int i = 0, size = mBluetoothSippers.size(); i < size; i++) {
+            final BatterySipper sipper = mBluetoothSippers.get(i);
+            int uid = sipper.getUid();
+            String target_package_name;
+            if(sipper.name ==null)
+              target_package_name = mPackageManager.getNameForUid(uid);
+            else
+              target_package_name = sipper.name;
+            sipper.writePower(writer,target_package_name);
+          }
+          for (int i = 0, size = mUserSippers.size(); i < size; i++) {
+            List<BatterySipper> user = mUserSippers.valueAt(i);
+            for (int j = 0; j < user.size(); j++) {
+              BatterySipper sipper = user.get(j);
+              int uid = sipper.getUid();
+              String target_package_name;
+              if(sipper.name ==null)
+                target_package_name = mPackageManager.getNameForUid(uid);
+              else
+                target_package_name = sipper.name;
+              sipper.writePower(writer,target_package_name);
+            }
+          }
+          writer.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+          Log.d(Log_tag,e.getMessage());
+        }
+
         if (DEBUG) {
             Log.d(TAG, "Accuracy: total computed=" + makemAh(mComputedPower) + ", min discharge="
                     + makemAh(mMinDrainedPower) + ", max discharge=" + makemAh(mMaxDrainedPower));
@@ -527,6 +600,7 @@ public class BatteryStatsHelper {
                 double amount = mMinDrainedPower - mComputedPower;
                 mTotalPower = mMinDrainedPower;
                 BatterySipper bs = new BatterySipper(DrainType.UNACCOUNTED, null, amount);
+                bs.name = "UNACCOUNTED";
 
                 // Insert the BatterySipper in its sorted position.
                 int index = Collections.binarySearch(mUsageList, bs);
@@ -540,6 +614,7 @@ public class BatteryStatsHelper {
 
                 // Insert the BatterySipper in its sorted position.
                 BatterySipper bs = new BatterySipper(DrainType.OVERCOUNTED, null, amount);
+                bs.name = "OVERCOUNTED";
                 int index = Collections.binarySearch(mUsageList, bs);
                 if (index < 0) {
                     index = -(index + 1);
@@ -560,6 +635,7 @@ public class BatteryStatsHelper {
                             * ((sipper.totalPowerMah + sipper.screenPowerMah)
                             / totalRemainingPower);
                     sipper.sumPower();
+                    sipper.name = "Smear";
                 }
             }
         }
@@ -581,6 +657,8 @@ public class BatteryStatsHelper {
             mMobileRadioPowerCalculator.calculateApp(app, u, mRawRealtimeUs, mRawUptimeUs,
                     mStatsType);
             mWifiPowerCalculator.calculateApp(app, u, mRawRealtimeUs, mRawUptimeUs, mStatsType);
+            //SERA
+            mWifiPowerEstimator.calculateApp(app, u, mRawRealtimeUs, mRawUptimeUs, mStatsType);
             mBluetoothPowerCalculator.calculateApp(app, u, mRawRealtimeUs, mRawUptimeUs,
                     mStatsType);
             mSensorPowerCalculator.calculateApp(app, u, mRawRealtimeUs, mRawUptimeUs, mStatsType);
@@ -667,7 +745,9 @@ public class BatteryStatsHelper {
         }
         power /= (60 * 60 * 1000); // To hours
         if (power != 0) {
-            addEntry(BatterySipper.DrainType.SCREEN, screenOnTimeMs, power);
+            BatterySipper screen = addEntry(BatterySipper.DrainType.SCREEN, screenOnTimeMs, power);
+            screen.name = "Screen";
+            screen.screenOnTimeMs = screenOnTimeMs;
         }
     }
 
@@ -694,6 +774,7 @@ public class BatteryStatsHelper {
         if (radio.totalPowerMah > 0) {
             mUsageList.add(radio);
         }
+        radio.name = "Radio";
     }
 
     private void aggregateSippers(BatterySipper bs, List<BatterySipper> from, String tag) {
@@ -702,6 +783,7 @@ public class BatteryStatsHelper {
             if (DEBUG) Log.d(TAG, tag + " adding sipper " + wbs + ": cpu=" + wbs.cpuTimeMs);
             bs.add(wbs);
         }
+
         bs.computeMobilemspp();
         bs.sumPower();
     }
@@ -744,6 +826,17 @@ public class BatteryStatsHelper {
         if (bs.totalPowerMah > 0) {
             mUsageList.add(bs);
         }
+        bs.name = "WIFI";
+
+        //SERALEE
+        BatterySipper bs2 = new BatterySipper(DrainType.WIFI, null, 0);
+        mWifiPowerEstimator.calculateRemaining(bs2, mStats, mRawRealtimeUs, mRawUptimeUs,
+                mStatsType);
+        aggregateSippers(bs2, mWifiSippers, "WIFI-Estimator");
+        if (bs2.totalPowerMah > 0) {
+            mUsageList.add(bs2);
+        }
+        bs2.name = "WIFI-Estimator";
     }
 
     /**
@@ -758,6 +851,7 @@ public class BatteryStatsHelper {
         if (bs.totalPowerMah > 0) {
             mUsageList.add(bs);
         }
+        bs.name = "Bluethooth";
     }
 
     private void addUserUsage() {
@@ -767,6 +861,7 @@ public class BatteryStatsHelper {
             bs.userId = userId;
             aggregateSippers(bs, mUserSippers.valueAt(i), "User");
             mUsageList.add(bs);
+            bs.name = "User";
         }
     }
 
@@ -775,6 +870,7 @@ public class BatteryStatsHelper {
         mMemoryPowerCalculator.calculateRemaining(memory, mStats, mRawRealtimeUs, mRawUptimeUs,
                 mStatsType);
         memory.sumPower();
+        memory.name = "Memory";
         if (memory.totalPowerMah > 0) {
             mUsageList.add(memory);
         }

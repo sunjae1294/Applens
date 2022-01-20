@@ -18,6 +18,10 @@ package com.android.internal.os;
 import android.os.BatteryStats;
 import android.util.Log;
 
+//SERA
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class BluetoothPowerCalculator extends PowerCalculator {
     private static final boolean DEBUG = BatteryStatsHelper.DEBUG;
     private static final String TAG = "BluetoothPowerCalculator";
@@ -61,6 +65,11 @@ public class BluetoothPowerCalculator extends PowerCalculator {
 
         mAppTotalPowerMah += powerMah;
         mAppTotalTimeMs += totalTimeMs;
+
+        //SERA
+        app.btIdleTimeMs = idleTimeMs;
+        app.btRxTimeMs = rxTimeMs;
+        app.btTxTimeMs = txTimeMs;
     }
 
     @Override

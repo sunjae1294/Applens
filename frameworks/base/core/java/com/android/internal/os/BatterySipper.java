@@ -20,6 +20,16 @@ import android.os.BatteryStats.Uid;
 
 import java.util.List;
 
+//SERALEE
+import android.util.Log;
+import android.content.pm.PackageManager;
+import org.json.JSONException;
+import org.json.JSONObject;
+//import com.google.gson.Gson;
+import java.io.FileWriter;
+import java.io.File;
+import java.io.IOException;
+
 /**
  * Contains power usage of an application, system service, or hardware type.
  */
@@ -30,6 +40,11 @@ public class BatterySipper implements Comparable<BatterySipper> {
     public Uid uidObj;
     @UnsupportedAppUsage
     public DrainType drainType;
+
+
+    //SERALEE
+    private static final String TAG = "SERALEE";
+    private static final boolean DEBUG = false;
 
     /**
      * Smeared power from screen usage.
@@ -94,6 +109,26 @@ public class BatterySipper implements Comparable<BatterySipper> {
     public long wakeLockTimeMs;
     @UnsupportedAppUsage
     public long wifiRunningTimeMs;
+    //SERALEE
+    /*
+     * @hide
+     */
+    public long wifiRxTimeMs;
+    public long wifiTxTimeMs;
+    public long wifiIdleTimeMs;
+    public long btRxTimeMs;
+    public long btTxTimeMs;
+    public long btIdleTimeMs;
+    public double wifiBatchScanPowerMah;
+    public double wifiPacketPowerMah;
+    public double wifiLockPowerMah;
+    public double wifiScanPowerMah;
+    public double wifiEstimatedPowerMah;
+    public long wifiScanTimeMs;
+    public long screenOnTimeMs;
+    public String name;
+    public String cpuUsageJSON;
+
 
     public long mobileRxPackets;
     public long mobileTxPackets;
@@ -129,6 +164,14 @@ public class BatterySipper implements Comparable<BatterySipper> {
     public double videoPowerMah;
     public double wakeLockPowerMah;
     public double wifiPowerMah;
+    
+    //SERALEE
+    public JSONObject hardwareUsage;
+
+    BatterySipper() {
+      //initialize the hardwareusage
+      hardwareUsage = new JSONObject();
+    }
 
     //                           ****************
     // This list must be kept current with atoms.proto (frameworks/base/cmds/statsd/src/atoms.proto)
@@ -164,6 +207,7 @@ public class BatterySipper implements Comparable<BatterySipper> {
         mobilemspp = packets > 0 ? (mobileActive / (double) packets) : 0;
     }
 
+
     @Override
     public int compareTo(BatterySipper other) {
         // Over-counted always goes to the bottom.
@@ -196,14 +240,22 @@ public class BatterySipper implements Comparable<BatterySipper> {
         return uidObj.getUid();
     }
 
+    //SERA
+    /*
+     * @hide
+     */
+    @UnsupportedAppUsage
+    public void addWifiInfo(BatterySipper other) {
+    }
+
     /**
      * Add stats from other to this BatterySipper.
      */
     @UnsupportedAppUsage
     public void add(BatterySipper other) {
         totalPowerMah += other.totalPowerMah;
-        usageTimeMs += other.usageTimeMs;
         usagePowerMah += other.usagePowerMah;
+        usageTimeMs += other.usageTimeMs;
         audioTimeMs += other.audioTimeMs;
         cpuTimeMs += other.cpuTimeMs;
         gpsTimeMs += other.gpsTimeMs;
@@ -240,6 +292,13 @@ public class BatterySipper implements Comparable<BatterySipper> {
         videoPowerMah += other.videoPowerMah;
         proportionalSmearMah += other.proportionalSmearMah;
         totalSmearedPowerMah += other.totalSmearedPowerMah;
+
+        //SERALEE
+        wifiEstimatedPowerMah += other.wifiEstimatedPowerMah;
+        wifiPacketPowerMah += other.wifiPacketPowerMah;
+        wifiLockPowerMah += other.wifiLockPowerMah;
+        wifiScanPowerMah += other.wifiScanPowerMah;
+
     }
 
     /**
@@ -254,6 +313,86 @@ public class BatterySipper implements Comparable<BatterySipper> {
                 flashlightPowerMah + bluetoothPowerMah + audioPowerMah + videoPowerMah;
         totalSmearedPowerMah = totalPowerMah + screenPowerMah + proportionalSmearMah;
 
+        //int uid = uidObj.getUid();
+        //Log.d(TAG, "UID " + uid + " : " + totalPowerMah + "Mah");
+
         return totalPowerMah;
+    }
+
+    public void writePower(FileWriter writer, String package_name) {
+      //Map<String, Object> powers = new HashMap<String,Object>();
+      try {
+        JSONObject powers = new JSONObject();
+        Log.d(TAG, "writePower is called");
+        int id = 0;
+        if(uidObj != null) {
+          id = uidObj.getUid();
+        }
+        powers.put("id", id);
+        powers.put("package_name", package_name);
+        powers.put("usagePowerMah", usagePowerMah);
+        powers.put("wifiPowerMah", wifiPowerMah);
+        powers.put("gpsPowerMah", gpsPowerMah);
+        powers.put("cpuPowerMah", cpuPowerMah);
+        powers.put("sensorPowerMah", sensorPowerMah);
+        powers.put("mobileRadioPowerMah", mobileRadioPowerMah);
+        powers.put("wakeLockPowerMah", wakeLockPowerMah);
+        powers.put("cameraPowerMah", cameraPowerMah);
+        powers.put("flashlightPowerMah", flashlightPowerMah);
+        powers.put("bluetoothPowerMah", bluetoothPowerMah);
+        powers.put("audioPowerMah", audioPowerMah);
+        powers.put("videoPowerMah", videoPowerMah);
+        powers.put("screenPowerMah", screenPowerMah);
+        powers.put("proportionalSmearMah",proportionalSmearMah);
+        powers.put("totalPowerMah", totalPowerMah);
+        powers.put("usageTimeMs", usageTimeMs);
+        powers.put("audioTimeMs", audioTimeMs);
+        powers.put("cpuTimeMs", cpuTimeMs);
+        powers.put("gpsTimeMs",gpsTimeMs);
+        powers.put("wifiRunningTimeMs", wifiRunningTimeMs);
+        powers.put("cpuFgTimeMs", cpuFgTimeMs);
+        powers.put("videoTimeMs", videoTimeMs);
+        powers.put("flashlightTimeMs", flashlightTimeMs);
+        powers.put("bluetoothRunningTimeMs", bluetoothRunningTimeMs);
+        powers.put("mobileRxPackets", mobileRxPackets);
+        powers.put("mobileTxPackets", mobileTxPackets);
+        powers.put("mobileActive", mobileActive);
+        powers.put("mobileActiveCount", mobileActiveCount);
+        powers.put("wifiRxPackets", wifiRxPackets);
+        powers.put("wifiTxPackets", wifiTxPackets);
+        powers.put("mobileRxBytes", mobileRxBytes);
+        powers.put("mobileTxBytes", mobileTxBytes);
+        powers.put("wifiRxBytes", wifiRxBytes);
+        powers.put("wifiTxBytes", wifiTxBytes);
+        powers.put("btRxBtyes", btRxBytes);
+        powers.put("btTxBytes", btTxBytes);
+
+        powers.put("wifiBatchScanPowerMah", wifiBatchScanPowerMah);
+        powers.put("wifiPacketPowerMah", wifiPacketPowerMah);
+        powers.put("wifiLockPowerMah", wifiLockPowerMah);
+        powers.put("wifiScanPowerMah", wifiScanPowerMah);
+        powers.put("wifiScanTimeMs", wifiScanTimeMs);
+        powers.put("wifiEstimatedPowerMah", wifiEstimatedPowerMah);
+        powers.put("cpuUsageJSON", cpuUsageJSON);
+        powers.put("wifiRxTimeMs", wifiRxTimeMs);
+        powers.put("wifiTxTimeMs", wifiTxTimeMs);
+        powers.put("wifiIdleTimeMs", wifiIdleTimeMs);
+        powers.put("screenOnTimeMs", screenOnTimeMs);
+        powers.put("btRxTimeMs", btRxTimeMs);
+        powers.put("btTxTimeMs", btTxTimeMs);
+        powers.put("btIdleTimeMs", btIdleTimeMs);
+
+
+        writer.write(powers.toString() + "\n");
+        writer.flush();
+        powers = null;
+      } catch (JSONException | IOException e) {
+        Log.d(TAG, e.getMessage());
+        try{
+        writer.write(e.getMessage());
+        } catch (IOException e2) {
+        Log.d(TAG, e2.getMessage());
+        }
+      }
     }
 }

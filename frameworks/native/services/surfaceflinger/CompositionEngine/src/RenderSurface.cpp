@@ -214,6 +214,15 @@ void RenderSurface::queueBuffer(base::unique_fd&& readyFence) {
     if (result != NO_ERROR) {
         ALOGE("[%s] failed pushing new frame to HWC: %d", mDisplay.getName().c_str(), result);
     }
+    /** applens: start
+    else if (!mDisplay.isVirtual()){
+	    struct timespec aft;
+	    clock_gettime(CLOCK_REALTIME, &aft);
+	    double after = 1000.0 * aft.tv_sec + (double) aft.tv_nsec / 1e6;
+	    ALOGW("vuitton test render	:	end=%f", after);
+    }
+     applens: end*/
+    
 }
 
 void RenderSurface::onPresentDisplayCompleted() {

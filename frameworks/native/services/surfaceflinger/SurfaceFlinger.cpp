@@ -3440,13 +3440,13 @@ bool SurfaceFlinger::doComposeSurfaces(const sp<DisplayDevice>& displayDevice,
 
         buf = display->getRenderSurface()->dequeueBuffer(&fd);
 
-	/** applens: start 
+	/** applens: start */ 
 		
-	if (strcmp(displayDevice->getDisplayName().c_str(),"OffScreen #0")==0) {
+	if (strstr(displayDevice->getDisplayName().c_str(),"OffScreen")!= NULL) {
 		return false;
 	}
 	
-	 applens: end */
+/*	 applens: end */
 
         if (buf == nullptr) {
             ALOGW("Dequeuing buffer for display [%s] failed, bailing out of "
