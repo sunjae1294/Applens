@@ -2539,7 +2539,15 @@ public class Activity extends ContextThemeWrapper
             for (Display display : presentationDisplays) {
                 if (display.getName().equals("UI #"+id)) {
                     Log.d("LENS", "drawing on UI #"+id);
-                    Presentation presentation = new UIDisplay(this,display,subtrees.get(index), displaySizes.get(index)[0],displaySizes.get(index)[1]);
+		    Presentation presentation;
+		    if (mComponent.getClassName().equals("com.coupang.mobile.domain.sdp.redesign.view.ProductDetailActivity")) {
+			    if (id==0) 
+				    presentation = new UIDisplay(this, display, subtrees.get(index), 1440, 1440);
+			    else
+				    presentation = new UIDisplay(this, display, subtrees.get(index), 643,500);
+		    } else {
+			    presentation = new UIDisplay(this,display,subtrees.get(index), displaySizes.get(index)[0],displaySizes.get(index)[1]);
+		    }
                     presentation.show();
                     if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
                         // touch video to bring up seek bar
