@@ -7325,6 +7325,15 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     public boolean performClick() {
         // We still need to call this method to handle the cases where performClick() was called
         // externally, instead of through performClickInternal()
+	/* applens: 
+
+	if (Activity.mUIRecordMode) {
+		int id = getRecordId(this);
+		String idName = getResources().getResourceEntryName(id);
+		if (getId() != View.NO_ID) {
+		}
+	}
+	applens: end */
         notifyAutofillManagerOnClick();
 
         final boolean result;
@@ -14126,6 +14135,16 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
        return ((Activity)mContext).isOffScreen();
     }
     /** applens: end */
+
+	private int getRecordId(View view) {
+		int id = view.getId();
+		if (id == View.NO_ID) {
+			id = getRecordId((View)(view.getParent()));
+		} else {
+			return id;
+		}
+		return id;
+	}
     public boolean dispatchTouchEvent(MotionEvent event) {
 //        Log.d("LENS", "touch on=" +this+". x="+event.getX()+ " y="+event.getY());
 
@@ -14154,6 +14173,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
             }
             return true;
         }
+
+
         /** applens: end */
 
         // If the event should be handled by accessibility focus first.
@@ -15563,6 +15584,28 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                         mIgnoreNextUpEvent = false;
                         break;
                     }
+			/* applens: start 
+
+			if (Activity.mUIRecordMode) {
+	//		if (event.getAction() == MotionEvent.ACTION_UP && isInTouchBound(event)) {
+				int inputEvent = event.getAction();
+				int viewID = getRecordId(this);
+				String id = getResources().getResourceEntryName(viewID);
+				String eventType = null;
+				if (inputEvent == 1) {
+					eventType = "touch";
+				}
+				if (getId() == View.NO_ID) {
+					Log.v("Vuitton record", "<event android:viewId=\"@id/"+id+
+							"\" android:eventType=\"touchPointer\" android:x=\""+
+							(int)event.getX()+"\" android:y=\""+(int)event.getY()+"\" android:delay=\"3\" />");
+//					Log.v("Vuitton record", "raw x="+event.getRawX()+", raw y="+event.getRawY()+", x="+event.getX()+", y="+event.getY());			
+				} else {
+					Log.d("Vuitton record", "<event android:viewId=\"@id/"+id+"\" android:eventType=\"touch\" />");
+				}
+			}	
+		    	applen: end */
+
                     boolean prepressed = (mPrivateFlags & PFLAG_PREPRESSED) != 0;
                     if ((mPrivateFlags & PFLAG_PRESSED) != 0 || prepressed) {
                         // take focus if we don't have it already and we should in

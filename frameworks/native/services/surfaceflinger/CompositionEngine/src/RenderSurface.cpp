@@ -190,6 +190,8 @@ void RenderSurface::queueBuffer(base::unique_fd&& readyFence) {
         if (mGraphicBuffer == nullptr) {
             ALOGE("No buffer is ready for display [%s]", mDisplay.getName().c_str());
         } else {
+
+
             status_t result =
                     mNativeWindow->queueBuffer(mNativeWindow.get(),
                                                mGraphicBuffer->getNativeBuffer(), dup(readyFence));
@@ -214,16 +216,62 @@ void RenderSurface::queueBuffer(base::unique_fd&& readyFence) {
     if (result != NO_ERROR) {
         ALOGE("[%s] failed pushing new frame to HWC: %d", mDisplay.getName().c_str(), result);
     }
-    /** applens: start
-    else if (!mDisplay.isVirtual()){
+    /** applens: start */
+//    else if (!mDisplay.isVirtual()){
+	else if (mDisplay.isVirtual()){    
 	    struct timespec aft;
 	    clock_gettime(CLOCK_REALTIME, &aft);
-	    double after = 1000.0 * aft.tv_sec + (double) aft.tv_nsec / 1e6;
-	    ALOGW("vuitton test render	:	end=%f", after);
+	  //  long after = (long)(1000.0 * aft.tv_sec + (double) aft.tv_nsec / 1e6);
+//	    ALOGW("vuitton test render	virtual :	end=%ld", after);
+
+		/* applens: start 
+	    // save to file.
+		int width = mGraphicBuffer->getWidth();
+		int height = mGraphicBuffer->getHeight();
+		int stride = mGraphicBuffer->getStride();
+		
+		char filePath[100];
+		sprintf(filePath, "/data/misc/pic_%d", after);
+		int fd = open(filePath, O_WRONLY | O_CREAT | O_APPEND, 0644);
+
+		uint8_t* bufferImg;
+		mGraphicBuffer->lock(GraphicBuffer::USAGE_SW_READ_OFTEN, (void**)(&bufferImg));
+		for (uint32_t y = 0; y < height; y++) {
+			for (uint32_t x = 0; x < width; x++) {
+				uint32_t pixel = getPixel(x,y,stride,bufferImg);
+				write(fd, &pixel, sizeof(pixel));
+			}
+		}
+
+		mGraphicBuffer->unlock();
+	 	applens: end */	
+    } else if (!mDisplay.isVirtual()) {
+	    struct timespec aft;
+	    clock_gettime(CLOCK_REALTIME, &aft);
+	 //   long after = (long)(1000.0 * aft.tv_sec + (double) aft.tv_nsec / 1e6);
+	//    ALOGW("vuitton test render default	:	end=%ld", after);
+
     }
-     applens: end*/
+    /**  applens: end*/
     
 }
+
+/** applens: start */
+uint32_t RenderSurface::getPixel(int32_t x, int32_t y, uint32_t stride, uint8_t* img) {
+    uint32_t r = img[(y * stride + x) * 4 + 0];
+    uint32_t g = img[(y * stride + x) * 4 + 1];
+    uint32_t b = img[(y * stride + x) * 4 + 2];
+    uint32_t a = img[(y * stride + x) * 4 + 3];
+
+
+    uint32_t pixel = 0;
+    pixel |= r;
+    pixel |= g << 8;
+    pixel |= b << 16;
+    pixel |= a << 24;
+    return pixel;
+}
+/** applens: end */
 
 void RenderSurface::onPresentDisplayCompleted() {
     mDisplaySurface->onFrameCommitted();

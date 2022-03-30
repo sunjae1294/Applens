@@ -790,6 +790,8 @@ public class Activity extends ContextThemeWrapper
 
     /** @hide */
     public static boolean mUISelectMode = false;
+    /** @hide */
+    public static boolean mUIRecordMode = false; 
 
     private View mOverlayView = null;
 
@@ -1879,22 +1881,34 @@ public class Activity extends ContextThemeWrapper
             finish(); 
         }
         /** appLens: start */ //onPostResumeLens
+
+
         Bundle extras = getIntent().getExtras();
         byte b = 0; 
+	byte r = 0;
         if (extras != null) {
             b = extras.getByte("isMigrated");
-            if (b > 0)
+	    r = extras.getByte("isRecord");
+            if (b > 0) {
                 isMigrated = true;
+	    }
+	    if (r > 0) {
+	    	mUIRecordMode = true;
+	    }
+ 	    
             mLensString = extras.getString("test");
 
         }
+	if (mUIRecordMode) {
+		Log.d("Vuitton record", "<activity android:name=\""+mComponent.getClassName()+"\">");
+	}
         Display disp = getDisplay();
         mDispId = disp.getDisplayId();
         //for test
 //        if (mDispId>=0) {
 	/** test      */ 
 //        if (mDispId>0 && !lensDone) {
-	if (!lensDone){        
+	if (!lensDone && mDispId>0){        
 //            Log.d("LENS", "onPostResume!! = "+mComponent.getClassName());
 //
             Handler handler = new Handler(Looper.getMainLooper());
@@ -1902,7 +1916,7 @@ public class Activity extends ContextThemeWrapper
                 @Override
                 public void run() {
                     parseTouch(true, mWindow.getDecorView());
- //                   fetchSubtree(true, mWindow.getDecorView());
+                   fetchSubtree(true, mWindow.getDecorView());
                 }
             }, 1000);
 
@@ -1926,6 +1940,9 @@ public class Activity extends ContextThemeWrapper
         }
         else if (ev.getAction() == MotionEvent.ACTION_UP && mTouchPointNums == 3) {
             mUISelectMode = !mUISelectMode;
+	    if (mUISelectMode){
+	    	mUIRecordMode = false;
+	    }
             if (mUISelectMode) {
                 WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                         mWindow.getDecorView().getWidth(),
@@ -1944,7 +1961,8 @@ public class Activity extends ContextThemeWrapper
             } else {
                 mWindowManager.removeView(mOverlayView);
                 mOverlayView = null;
-                finishAndRemoveTask();
+		finishAffinity();
+                //finishAndRemoveTask();
                 System.exit(0);
             }
             mTouchPointNums = 0;
@@ -2029,8 +2047,8 @@ public class Activity extends ContextThemeWrapper
                 if (mComponent.getClassName().equals("com.google.android.play.core.common.PlayCoreDialogWrapperActivity")) {
                     return false;
                 }
-                // for Youtube
-                if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
+                // for Youtube // disabled for macro test / remove ee at the end of package name
+                if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivityee")) {
                     Log.d(LENS_TAG, "found youtube");
                     displaySizes = new ArrayList<int[]>();
 		    return false;
@@ -2047,7 +2065,7 @@ public class Activity extends ContextThemeWrapper
                     res = inflate(uiParser, firstTime, decorView);
                 }
             }else{
-                if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
+                if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivityee")) {
 // youtube battery test			
 //                    res = inflateYoutube(firstTime, decorView);
                     return false;
@@ -2565,7 +2583,7 @@ public class Activity extends ContextThemeWrapper
                     presentation.show();
 			Log.d("vuitton test attach","end="+System.currentTimeMillis());
 			Log.d("vuitton test render","start="+System.currentTimeMillis());
-                    if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivity")) {
+                    if (mComponent.getClassName().equals("com.google.android.apps.youtube.app.watchwhile.WatchWhileActivityee")) {
                         // touch video to bring up seek bar
                         long downTime = SystemClock.uptimeMillis();
                         long eventTime = SystemClock.uptimeMillis() + 100;
@@ -6033,6 +6051,9 @@ public class Activity extends ContextThemeWrapper
         if (isMigrated) {
             intent.putExtra("isMigrated", (byte) 1);
         }
+	if (mUIRecordMode) {
+		intent.putExtra("isRecord", (byte) 1);
+	}
         if (mLensString != null) {
             intent.putExtra("test", mLensString);
         }

@@ -69,6 +69,10 @@ public:
     sp<GraphicBuffer>& mutableGraphicBufferForTest();
     base::unique_fd& mutableBufferReadyForTest();
 
+    /** applens: start */
+    uint32_t getPixel(int32_t x, int32_t y, uint32_t stride, uint8_t* img);
+    /** applens: end */
+
 private:
     const compositionengine::CompositionEngine& mCompositionEngine;
     const compositionengine::Display& mDisplay;

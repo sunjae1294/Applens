@@ -33,7 +33,7 @@ final class UIDisplayWindow {
 
     private final float INITIAL_SCALE = 1.0f;
     private final float MIN_SCALE = 0.1f;
-    private final float MAX_SCALE = 1.0f;
+    private final float MAX_SCALE = 1.3f;
     private float WINDOW_ALPHA = 1.0f;
 
     // When true, disables support for moving and resizing the overlay.
@@ -67,8 +67,7 @@ final class UIDisplayWindow {
     private boolean mWindowVisible;
     private int mWindowX;
     private int mWindowY;
-    private float mWindowScaleX;
-    private float mWindowScaleY;
+    private float mWindowScale;
 
     private boolean mIsDefSet = false;
     private int defWindowX;
@@ -81,10 +80,10 @@ final class UIDisplayWindow {
     private float mLiveScale = 1.0f;
     private boolean mIsRight;
     private boolean mIsLoading;
-    private boolean mResizeMode = false;
+    private boolean mResizeMode = true;
 
     public UIDisplayWindow(Context context, String name,
-            int width, int height, int densityDpi, boolean visible,boolean secure, boolean isRight, boolean isLoading,
+            int width, int height, int densityDpi, boolean mDefaultResize, boolean visible,boolean secure, boolean isRight, boolean isLoading,
             Listener listener) {
         ThreadedRenderer.disableVsync();
         mContext = context;
@@ -107,7 +106,8 @@ final class UIDisplayWindow {
         resize(width, height, densityDpi, false /* doLayout */);
         mIsRight = isRight;
         mIsLoading = isLoading;
-        createWindow();
+        setResizeMode(mDefaultResize);
+	createWindow();
     }
 
     public int getDisplayId() {
@@ -221,20 +221,18 @@ final class UIDisplayWindow {
         mGestureDetector = new GestureDetector(mContext, mOnGestureListener);
         mScaleGestureDetector = new ScaleGestureDetector(mContext, mOnScaleGestureListener);
 
-        mWindowScaleX = INITIAL_SCALE;
-        mWindowScaleY = INITIAL_SCALE;
+        mWindowScale = INITIAL_SCALE;
+	relayoutUIDisplay(100,1500, 1.0f);
     }
 
     public void relayoutUIDisplay(float x, float y, float scale, float scaleY) {
-        mWindowScaleY = scaleY;
-        mWindowScaleX = scale;
+        mWindowScale = scale;
         mWindowX = (int)x;
         mWindowY = (int)y;
         relayout();
     }
 
     public void relayoutUIDisplay(float x, float y, float scale) {
-	Slog.w("sunjae", "relayoutUIDisplay");
         if(!mIsDefSet) {
             defWindowScaleX = scale;
             defWindowScaleY = scale;
@@ -242,8 +240,7 @@ final class UIDisplayWindow {
             defWindowY = (int)y;
             mIsDefSet = true;
 
-            mWindowScaleX = scale;
-            mWindowScaleY = scale;
+            mWindowScale = scale;
             mWindowX = (int)x;
             mWindowY = (int)y;
         }
@@ -278,28 +275,32 @@ final class UIDisplayWindow {
         WINDOW_ALPHA = 1.0f;
         mWindowParams.alpha = WINDOW_ALPHA;
         mWindowParams.flags ^= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+	mWindowVisible = true;
         relayout();
     }
 
     private void updateWindowParams() {
+        float scale = mWindowScale * mLiveScale;
+        scale = Math.min(scale, (float)mDefaultDisplayInfo.logicalWidth / mWidth);
+        scale = Math.min(scale, (float)mDefaultDisplayInfo.logicalHeight / mHeight);
+	scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+        
+	float offsetScale = (scale / mWindowScale - 1.0f) * 0.5f;
+	int width = (int)(mWidth * scale);
+	int height = (int)(mHeight * scale);
+	int x = (int)(mWindowX + mLiveTranslationX - width * offsetScale);	
+	int y = (int)(mWindowY + mLiveTranslationY - width * offsetScale);	
+//	x = Math.max(0, Math.min(x, mDefaultDisplayInfo.logicalWidth - width));
+//	y = Math.max(0, Math.min(y, mDefaultDisplayInfo.logicalHeight - height));
 
-        float scaleX = mWindowScaleX * mLiveScale;
-        float scaleY = mWindowScaleY * mLiveScale;
 
-        scaleX = Math.min(scaleX, (float)mDefaultDisplayInfo.logicalWidth / mWidth);
-        scaleY = Math.min(scaleY, (float)mDefaultDisplayInfo.logicalHeight / mHeight);
-        /*
+	/*
+	
         mTextureView.getLayoutParams().width = mWidth;
         mTextureView.getLayoutParams().height = mHeight;
         */
-        mTextureView.setScaleX(scaleX);
-        mTextureView.setScaleY(scaleY);
-        int width = (int)(mWidth * scaleX);
-        int height = (int)(mHeight * scaleY);
-
-        int x = (int)(mWindowX + mLiveTranslationX);
-        int y = (int)(mWindowY + mLiveTranslationY);
-
+        mTextureView.setScaleX(scale);
+        mTextureView.setScaleY(scale);
 
         mWindowParams.x = x;
         mWindowParams.y = y;
@@ -311,8 +312,7 @@ final class UIDisplayWindow {
     private void saveWindowParams() {
         mWindowX = mWindowParams.x;
         mWindowY = mWindowParams.y;
-        mWindowScaleX = mTextureView.getScaleX();
-        mWindowScaleY = mTextureView.getScaleY();
+        mWindowScale = mTextureView.getScaleX();
         clearLiveState();
     }
 
@@ -379,10 +379,9 @@ final class UIDisplayWindow {
             if (!mResizeMode) {
                 float oldX = event.getX();
                 float oldY = event.getY();
-                float newX = oldX / mWindowScaleX;
-                float newY = oldY / mWindowScaleY;
+                float newX = oldX / mWindowScale;
+                float newY = oldY / mWindowScale;
     //            event.setLocation(newX, newY);
-                Slog.w("sunjae", "newX = " + newX + "newY = " + newY + "mWindowScale = " + mWindowScaleY + "action = " + event.getAction() + "displayID = "+mDisplayId);
 
 
                 long now = SystemClock.uptimeMillis();
@@ -434,7 +433,7 @@ final class UIDisplayWindow {
     private final ScaleGestureDetector.OnScaleGestureListener mOnScaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            if (detector.getScaleFactor() != Float.NaN) {
+            if (!Float.isNaN(detector.getScaleFactor())) {
                 mLiveScale *= detector.getScaleFactor();
                 relayout();
             }

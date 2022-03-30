@@ -29,6 +29,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
 
     private final Handler mUIHandler;
     private static boolean mDefaultVisible = false;
+    private static boolean mDefaultResize = false;
     private Context mContext;
     private int numUi = -1;
     private final SparseArray<UIDisplayHandle> mUIDisps = 
@@ -227,6 +228,7 @@ final class UIDisplayAdapter extends DisplayAdapter {
     }
 
     public void resizeUIDisplay(boolean mode) {
+	mDefaultResize = mode;
        int size = mUIDisps.size();
         for (int i = 0; i < size; i++) {
             mUIDisps.get(i).resizeLocked(mode);
@@ -525,8 +527,9 @@ final class UIDisplayAdapter extends DisplayAdapter {
             @Override
             public void run() {
                 UIMode mode = mMode;
+		Slog.w("Vuitton record", "Addapter default = "+mDefaultResize);
                 UIDisplayWindow window = new UIDisplayWindow(getContext(), mName, mode.mWidth, mode.mHeight,
-                        mode.mDensityDpi, mDefaultVisible, false, mIsRight, mIsLoading, UIDisplayHandle.this);
+                        mode.mDensityDpi, mDefaultResize ,mDefaultVisible, false, mIsRight, mIsLoading, UIDisplayHandle.this);
                 window.show();
 		/**
             	Slog.w("vuitton test display", "end="+System.currentTimeMillis());
