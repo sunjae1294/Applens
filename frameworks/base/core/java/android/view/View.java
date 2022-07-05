@@ -14131,8 +14131,19 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
 /** applens: end */
 
     public boolean dispatchTouchEvent(MotionEvent event) {
-//        Log.d("LENS", "touch on=" +this+". x="+event.getX()+ " y="+event.getY());
-
+	/** applens: start */
+	    /*
+	     * bring activity to front on touch 
+	if (isMigrated) {
+		Log.d("LENS", "bringto front 1");
+	    if (mContext instanceof Activity) {
+		    Log.d("LENS", "bring to front 2");
+		boolean res =  ((Activity)mContext).bringToFront(event);
+	       if (res)
+		    return true;
+	    }
+	} 
+	*/
 	if (Activity.mUISelectMode){
             if (this instanceof ViewGroup)
                 return false;
@@ -14446,21 +14457,13 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     @UnsupportedAppUsage
     public final boolean dispatchPointerEvent(MotionEvent event) {
         if (event.isTouchEvent()) {
+
             /** applens: start */
             if (mContext instanceof DecorContext) {
                 boolean res = ((DecorContext)mContext).triggerUISelection(event);
                 if (res)
                     return true;
             }
-
-		/** applens: start */
-		if (isMigrated) {
-		    if (mContext instanceof Activity) {
-			boolean res =  ((Activity)mContext).bringToFront(event);
-		       if (res)
-			    return true;
-		    }
-		} 
             /** applens: end */
             return dispatchTouchEvent(event);
         } else {

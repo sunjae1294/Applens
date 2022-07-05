@@ -2065,31 +2065,30 @@ public class Activity extends ContextThemeWrapper
     private int touchPointNums = 0;
     /** @hide */
     public boolean bringToFront(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-             touchPointNums = ev.getPointerCount();
-        }
-        else if (ev.getAction() == MotionEvent.ACTION_UP && touchPointNums == 2) {
-		ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-		if (mComponent.getClassName().equals("com.lotte.on.product.activity.ProductDetailActivity") ||
-			mComponent.getClassName().equals("com.coupang.mobile.domain.sdp.redesign.view.ProductDetailActivity") || // com.coupang.mobile.domain.sdp.interstellar.view.NewSdpActivity") ||
-			mComponent.getClassName().equals("com.starbucks.co2.ui.order.store.SirenOrderStoreSearchActivity") ||
-			mComponent.getClassName().equals("com.ediya.coupon.view.order.OrderStoreActivity")) {
-		    Log.d("LENS", "target Activity!!");
-		    mBringToFront = true;
+	Log.d("LENS", "bringTo Front!");
 
-		   activityManager.lensBringToFront(getTaskId(), true);
-		   mDisplayManager.dismissUIDisplay();
-		   return true;
-		} else {
-		    Log.d("LENS", "not target Activity");
-		    mBringToFront = false;
-		    activityManager.lensBringToFront(getTaskId(), false);
-		    return false;
-		}
-        } else if (touchPointNums < ev.getPointerCount()) {
-            touchPointNums = ev.getPointerCount();
-        }
-        return false;
+	ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+	mBringToFront = true;
+   	activityManager.lensBringToFront(getTaskId(), true);
+	mDisplayManager.dismissUIDisplay();
+   	return true;
+	/*
+	if (mComponent.getClassName().equals("com.lotte.on.product.activity.ProductDetailActivity") ||
+		mComponent.getClassName().equals("com.coupang.mobile.domain.sdp.redesign.view.ProductDetailActivity") || // com.coupang.mobile.domain.sdp.interstellar.view.NewSdpActivity") ||
+		mComponent.getClassName().equals("com.starbucks.co2.ui.order.store.SirenOrderStoreSearchActivity") ||
+		mComponent.getClassName().equals("com.ediya.coupon.view.order.OrderStoreActivity")) {
+	    Log.d("LENS", "target Activity!!");
+	    mBringToFront = true;
+
+	   activityManager.lensBringToFront(getTaskId(), true);
+	   mDisplayManager.dismissUIDisplay();
+	   return true;
+	} else {
+	    Log.d("LENS", "not target Activity");
+	    mBringToFront = false;
+	    activityManager.lensBringToFront(getTaskId(), false);
+	    return false;
+	}*/
     }
 
     private boolean inflateMacro(XmlPullParser parser, boolean firstTime, View decorView) throws Exception {

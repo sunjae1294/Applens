@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import android.webkit.WebView;
+import android.view.GestureDetector;
 
 /** @hide */
 public class UIDisplay extends Presentation {
@@ -37,6 +38,7 @@ public class UIDisplay extends Presentation {
     View subtree;
     int mWidth;
     int mHeight;
+    GestureDetector gestureDetector;
 
     public UIDisplay(Context outerContext, Display display, ViewGroup subtree, int width, int height) {
         super(outerContext, display);
@@ -92,6 +94,11 @@ public class UIDisplay extends Presentation {
                     mAppLensManager.setProxyLayout(subtree);
                 }
             }
+
+	    gestureDetector = new GestureDetector(mOuterContext, new LongPressListener());
+
+
+
 /**
             for (View view : mTargetViews) {
                 ViewGroup parent = (ViewGroup) view.getParent();
@@ -115,4 +122,20 @@ public class UIDisplay extends Presentation {
             **/
         }
     }
+
+    private class LongPressListener extends GestureDetector.SimpleOnGestureListener {
+    	@Override
+	public void onLongPress(MotionEvent e) {
+		Log.d("LENS", "long pressed");
+		((Activity)mOuterContext).bringToFront(e);
+	}
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+	    Log.d("LENS", "onTouchEvent");
+    	gestureDetector.onTouchEvent(event);
+	return super.dispatchTouchEvent(event);    	
+    }
+
 }
