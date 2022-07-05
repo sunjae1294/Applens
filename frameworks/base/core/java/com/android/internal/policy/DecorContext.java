@@ -155,10 +155,10 @@ public class DecorContext extends ContextThemeWrapper {
         }
     }
 
-    public boolean bringToFront() {
+    public boolean bringToFront(MotionEvent ev) {
         Context context = mActivityContext.get();
         if (context instanceof Activity) {
-            return ((Activity)context).bringToFront();
+            return ((Activity)context).bringToFront(ev);
         }
         return false;
     }

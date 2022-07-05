@@ -14116,7 +14116,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         }
     }
 
-    /**@hide */
+
+    /** @hide */
     public boolean isOffScreen() {
        //sunjae 
        if (mContext.getPackageName().equals("com.google.android.gms")) {
@@ -14124,19 +14125,15 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
            return false;
        }
        return ((Activity)mContext).isOffScreen();
-    }
-    /** applens: end */
+    } 
+  
+
+/** applens: end */
+
     public boolean dispatchTouchEvent(MotionEvent event) {
 //        Log.d("LENS", "touch on=" +this+". x="+event.getX()+ " y="+event.getY());
 
-        /** applens: start */
-        if (isMigrated) {
-            if (mContext instanceof Activity) {
-                boolean res =  ((Activity)mContext).bringToFront();
-                if (res)
-                    return true;
-            }
-        } else if (Activity.mUISelectMode){
+	if (Activity.mUISelectMode){
             if (this instanceof ViewGroup)
                 return false;
             if (event.getAction() == MotionEvent.ACTION_UP && isInTouchBound(event)) {
@@ -14455,6 +14452,15 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                 if (res)
                     return true;
             }
+
+		/** applens: start */
+		if (isMigrated) {
+		    if (mContext instanceof Activity) {
+			boolean res =  ((Activity)mContext).bringToFront(event);
+		       if (res)
+			    return true;
+		    }
+		} 
             /** applens: end */
             return dispatchTouchEvent(event);
         } else {

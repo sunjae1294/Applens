@@ -1405,7 +1405,7 @@ public final class InputMethodManager {
      * {@link #RESULT_HIDDEN}.
      */
     public boolean showSoftInput(View view, int flags, ResultReceiver resultReceiver) {
-        /** applens: start */
+        /** applens: start not working 
         if (view.isOffScreen()) {
             Log.d("LENS", "view offscreen don't show keyboard");
             return false;
@@ -1413,7 +1413,7 @@ public final class InputMethodManager {
             Log.d("LENS", "view not offscreen");
         
         }
-        /** applens: end */
+         applens: end */
         // Re-dispatch if there is a context mismatch.
         final InputMethodManager fallbackImm = getFallbackInputMethodManagerIfNecessary(view);
         if (fallbackImm != null) {
